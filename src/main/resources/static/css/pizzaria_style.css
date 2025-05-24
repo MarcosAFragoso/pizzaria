@@ -1,0 +1,247 @@
+/* src/main/resources/static/css/pizzaria_style.css */
+
+/* --- Configurações Globais e Layout Base --- */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-image:
+        linear-gradient(to bottom, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 70%, rgba(0, 0, 0, 1) 100%),
+        url('../images/background-pizzaria.jpg'); /* Certifique-se que o caminho e nome da imagem estão corretos */
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-color: #212529; /* Um cinza bem escuro de fallback */
+    color: #f8f9fa; /* Cor de texto padrão para contraste com fundo escuro */
+    padding-top: 72px; /* Ajuste este valor para a altura EXATA do seu header fixo */
+}
+
+main {
+    flex: 1; /* Faz o conteúdo principal ocupar o espaço restante */
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+}
+
+/* --- Cabeçalho (Header) --- */
+.header-fixed { /* Aplicar esta classe à tag <header> no seu fragmento header_pizzaria.html */
+    position: fixed !important; /* !important para garantir durante os testes, idealmente remover depois */
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    z-index: 1030 !important; /* Padrão Bootstrap para navbars fixas */
+    /* background-color: #343a40; /* bg-dark do Bootstrap - já está na classe do header */
+}
+
+.logo-cabecalho {
+    width: 40px; /* Ou o tamanho desejado */
+    height: 40px;
+    border-radius: 50%; /* Para logo redonda */
+    object-fit: cover; /* Para a imagem preencher bem o círculo */
+    margin-right: 0.5rem; /* Espaço entre a logo e o nome da pizzaria */
+}
+
+/* --- Rodapé (Footer) --- */
+footer[th\:fragment="footer"] {
+    width: 100%;
+    /* A classe bg-light do Bootstrap já define o fundo. mt-auto no HTML cuida do "sticky" */
+}
+footer[th\:fragment="footer"] .container { /* Para o texto dentro do container do footer */
+    color: #495057; /* Um cinza escuro para contraste com bg-light */
+}
+
+/* --- Seções de Página e Títulos --- */
+.page-section {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}
+
+.hero-section .display-5, /* Títulos grandes na página inicial */
+.titulo-pagina {          /* Títulos de página como "Cardápio", "Finalizar Pedido" */
+    color: #ffffff;
+    font-weight: bold;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6); /* Sombra para destacar do background */
+}
+
+.hero-section .lead { /* Texto de introdução na página inicial */
+    color: #e9ecef; /* Um branco acinzentado claro */
+    font-size: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+/* Títulos H3 dentro de cards brancos (como na página de bebidas, login, etc.) */
+.card .card-body > h3.text-center,
+.login-card-custom > h3 { /* Aplicado ao h3 do login-card-custom */
+    color: #343a40; /* Cinza escuro */
+    font-weight: 500;
+}
+
+/* --- Card de Pizza (Cardápio) --- */
+.card-pizza { margin-bottom: 1.5rem; background-color: #fff; border: none; border-radius: 0.5rem; box-shadow: 0 0.25rem 0.75rem rgba(0,0,0,.1); }
+.card-pizza .card-img-top { width: 100%; height: 200px; object-fit: cover; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; }
+.card-pizza .card-body { display: flex; flex-direction: column; color: #212529; padding: 1.25rem; }
+.card-pizza .card-title { min-height: 2.8em; /* Para ~2 linhas de título */ margin-bottom: 0.75rem; color: #212529; font-weight: bold; line-height: 1.4em; }
+.card-pizza .descricao-pizza { font-size: 0.9rem; color: #495057; margin-bottom: 0.75rem; flex-grow: 1; min-height: 60px; /* Ajuste conforme necessário */ }
+.card-pizza .ingredientes-pizza, .card-pizza .preco-pizza { font-size: 0.9rem; color: #495057; margin-bottom: 0.5rem; }
+.card-pizza .ingredientes-pizza strong, .card-pizza .preco-pizza strong { color: #212529; }
+.card-pizza .btn { margin-top: auto; /* Empurra o botão para o final */ }
+
+/* --- Página de Bebidas --- */
+.bebida-item { display: flex; align-items: center; margin-bottom: 1rem; padding: 1rem; border: 1px solid #e9ecef; border-radius: 0.375rem; background-color: #fff; }
+.bebida-item img.bebida-imagem { width: 60px; height: 60px; object-fit: cover; border-radius: 0.25rem; margin-right: 1rem; }
+.bebida-info { flex-grow: 1; }
+.bebida-info h6 { margin-bottom: 0.25rem; color: #343a40; }
+.bebida-info .text-muted { font-size: 0.85em; }
+.bebida-info .fw-bold { color: #198754; /* Preço em verde */ }
+.bebida-action .form-control-sm { width: 65px !important; text-align: center; }
+.bebida-action .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+.bebida-action .btn-outline-success { /* Ajustar cor do botão se necessário */ }
+
+/* --- Formulários Centrais (Login, Registro, Editar Perfil, Checkout Sections) --- */
+.login-container-custom { /* Container que centraliza o card na tela */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Tenta centralizar verticalmente */
+    align-items: center;     /* Centraliza horizontalmente */
+    padding: 2rem 0.5rem;    /* Padding vertical e um pouco horizontal */
+    flex-grow: 1; /* Para ocupar o espaço de main */
+}
+
+.login-card-custom { /* Card branco para os formulários */
+    background-color: rgba(255, 255, 255, 0.98);
+    color: #212529; /* Cor do texto padrão dentro do card */
+    padding: 2rem;      /* Padding interno */
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 480px;   /* Largura máxima do card */
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+}
+/* Ajuste específico para o card de checkout que pode ser maior */
+.checkout-card { /* Você pode adicionar esta classe ao card principal da página de checkout se precisar de mais largura */
+    max-width: 800px;
+}
+
+
+.login-card-custom .logo-login {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 1.5rem;
+    display: block;
+}
+
+.login-card-custom .form-label { /* Labels dos form-floating */
+    color: #495057;
+}
+.login-card-custom .form-control:focus { /* Destaque no foco */
+    border-color: #f0ad4e; /* Um laranja/amarelo para combinar com tema de pizzaria */
+    box-shadow: 0 0 0 0.25rem rgba(240, 173, 78, 0.25);
+}
+.login-card-custom .btn-primary { /* Botão principal do formulário */
+    background-color: #d9534f; /* Um vermelho para Pizzaria Mario */
+    border-color: #d9534f;
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #fff;
+}
+.login-card-custom .btn-primary:hover {
+    background-color: #c9302c;
+    border-color: #ac2925;
+}
+.login-card-custom .links-login a {
+    color: #d9534f; /* Links com a mesma cor do botão */
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+.login-card-custom .links-login a:hover {
+    text-decoration: underline;
+}
+.login-card-custom .copyright-login {
+    font-size: 0.85em;
+    color: #6c757d;
+}
+
+/* Estilos para Checkout (seções dentro do card principal) */
+.resumo-pedido-item { font-size: 0.9rem; }
+.total-pedido { font-size: 1.5rem; font-weight: bold; color: #212529; }
+
+.tipo-pedido-section,
+.dados-entrega,
+.mesa-info-section,
+.dados-pagamento {
+    background-color: #f8f9fa; /* Cinza bem claro para destacar as seções */
+    padding: 1.25rem;
+    border-radius: 0.375rem;
+    margin-top: 1.5rem; /* Espaçamento entre estas seções */
+    margin-bottom: 1.5rem;
+    color: #212529; /* Cor do texto padrão dentro destas sub-seções */
+}
+.tipo-pedido-section:first-child, /* Remove margem do topo da primeira seção */
+.dados-entrega:first-child,
+.mesa-info-section:first-child,
+.dados-pagamento:first-child {
+    margin-top: 0;
+}
+
+
+.tipo-pedido-section h5,
+.dados-entrega h5,
+.mesa-info-section h5,
+.dados-pagamento h5 {
+    margin-bottom: 1rem;
+    color: #343a40;
+    font-size: 1.1rem; /* Tamanho dos títulos das sub-seções */
+}
+
+.tipo-pedido-section .form-check-label,
+.dados-entrega .form-label, .dados-entrega .form-check-label,
+.mesa-info-section .form-label,
+.dados-pagamento .form-label, .dados-pagamento .form-select {
+    color: #495057;
+}
+
+#mesa-info-section { display: none; } /* Inicia oculto */
+.detalhes-tipo-pagamento { display: none; } /* Inicia oculto */
+
+/* Título dentro de um card que não é o .login-card-custom, mas tem fundo branco */
+.card .card-body > h3.titulo-pagina-no-card {
+    color: #343a40; /* Cor escura para o título */
+    font-weight: 500; /* Ou bold, se preferir */
+}
+
+/* Para a seção de escolha de tipo de pizza em montar-pizza.html */
+.tipo-pedido-section.p-3 label.form-check-label { /* Reutilizando a classe, mas pode criar uma nova */
+    color: #212529; /* Garante que o texto do label seja escuro */
+}
+.tipo-pedido-section.p-3 .form-check-input:checked + .form-check-label {
+    font-weight: bold; /* Destaca a opção selecionada */
+}
+
+/* Ajustes para o select da segunda metade */
+#selectMetade2 .form-select-lg {
+    font-size: 1rem; /* Ajusta o tamanho da fonte se necessário */
+}
+
+/* Media Query para telas pequenas (ajuste do card de login/formulário) */
+@media (max-width: 576px) {
+    .login-card-custom {
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
+        padding: 1.5rem;
+    }
+    .login-container-custom {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+    .card-body.p-md-5 { /* Reduzir padding em telas pequenas para card-body genérico */
+        padding: 1.5rem !important;
+    }
+}

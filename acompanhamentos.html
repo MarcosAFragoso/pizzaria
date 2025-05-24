@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Adicionar Acompanhamentos</title>
+    <!-- Estilos para .bebida-item podem ser reutilizados ou adaptados para .acompanhamento-item se necessário -->
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section"> <!-- Container Bootstrap para padding e responsividade -->
+        <div class="row justify-content-center"> <!-- Centraliza a coluna filha -->
+            <div class="col-xl-7 col-lg-8 col-md-10 col-12"> <!-- Coluna para controlar a largura -->
+                <div class="card shadow-lg"> <!-- Card principal com sombra -->
+                    <div class="card-body p-4 p-md-5"> <!-- Padding interno -->
+                        <h3 class="text-center mb-3 titulo-pagina-no-card">Adicionar Acompanhamentos</h3>
+                        <p class="text-center text-muted mb-4">Para sua pizza: <strong th:text="${itemPedidoAtual?.getNomeExibicao()}"></strong></p>
+
+                        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${successMessage}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${errorMessage}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+
+                        <form th:action="@{/pedido/adicionar-acompanhamentos}" method="post">
+                            <!-- Adicionais para a Pizza -->
+                            <div th:if="${adicionaisPizza != null and !adicionaisPizza.isEmpty()}">
+                                <h5 class="mt-4 mb-3" style="color: #444;">Adicionais na Pizza:</h5>
+                                <div th:each="adicional : ${adicionaisPizza}" class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="acompanhamentoIds" th:value="${adicional.id}" th:id="'acompanhamento_' + ${adicional.id}">
+                                    <label class="form-check-label" th:for="'acompanhamento_' + ${adicional.id}" style="color: #212529;">
+                                        <span th:text="${adicional.nome}">Nome do Adicional</span>
+                                        <small class="text-muted" th:if="${adicional.descricao != null}" th:text="' (' + ${adicional.descricao} + ')'"></small>
+                                        - <span class="fw-bold" style="color: #198754;" th:text="'R$ ' + ${#numbers.formatDecimal(adicional.preco, 2, 'POINT', 2, 'COMMA')}"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Porções Extras -->
+                            <div th:if="${porcoes != null and !porcoes.isEmpty()}">
+                                <h5 class="mt-4 mb-3" style="color: #444;">Porções Extras:</h5>
+                                <div th:each="porcao : ${porcoes}" class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" name="acompanhamentoIds" th:value="${porcao.id}" th:id="'acompanhamento_' + ${porcao.id}">
+                                    <label class="form-check-label" th:for="'acompanhamento_' + ${porcao.id}" style="color: #212529;">
+                                        <span th:text="${porcao.nome}">Nome da Porção</span>
+                                        <small class="text-muted" th:if="${porcao.descricao != null}" th:text="' (' + ${porcao.descricao} + ')'"></small>
+                                        - <span class="fw-bold" style="color: #198754;" th:text="'R$ ' + ${#numbers.formatDecimal(porcao.preco, 2, 'POINT', 2, 'COMMA')}"></span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-5 pt-4 border-top">
+                                <a th:href="@{/pedido/montar/{pizzaId}(pizzaId=${itemPedidoAtual?.pizza1?.id})}" class="btn btn-outline-secondary btn-lg"><i class="bi bi-arrow-left"></i> Voltar para Pizza</a>
+                                <button type="submit" class="btn btn-success btn-lg">Adicionar e Ir para Bebidas <i class="bi bi-arrow-right"></i></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

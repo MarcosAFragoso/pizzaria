@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Criar Nova Conta</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="login-container-custom"> <!-- Reutilizando a classe para centralizar o card -->
+            <div class="login-card-custom text-center"> <!-- Reutilizando a classe do card -->
+                <img th:src="@{/images/logo_pizzaria.png}" alt="Pizzaria Mario Logo" class="logo-login mb-4">
+                <h3>Crie sua Conta</h3>
+                <p class="mb-4 text-muted">É rápido e fácil!</p>
+
+                <!-- Aqui viria a lógica para exibir mensagens de erro do backend se o cadastro falhar -->
+                <!-- <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div> -->
+
+                <form th:action="@{/registrar}" method="post"> <!-- Endpoint do backend para processar o registro -->
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="nomeCompleto" name="nomeCompleto" placeholder="Nome Completo" required>
+                        <label for="nomeCompleto" class="form-label">Nome Completo</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Seu melhor e-mail" required>
+                        <label for="email" class="form-label">E-mail</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="senha" name="senha" placeholder="Crie uma senha" required>
+                        <label for="senha" class="form-label">Senha</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="confirmarSenha" name="confirmarSenha" placeholder="Confirme sua senha" required>
+                        <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
+                    </div>
+                    
+                    <!-- Adicionar outros campos se necessário: Telefone, Endereço (pode ser em outra etapa) -->
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Criar Conta</button>
+                </form>
+
+                <div class="mt-4 links-login">
+                    <p class="mb-0">Já tem uma conta? <a th:href="@{/login}">Faça Login</a></p>
+                </div>
+                <p class="mt-4 mb-1 text-muted copyright-login">© 2024-2025 Pizzaria Mario</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

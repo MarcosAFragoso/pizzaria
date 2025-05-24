@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Recuperar Senha</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="login-container-custom">
+            <div class="login-card-custom text-center">
+                <img th:src="@{/images/logo_pizzaria.png}" alt="Pizzaria Mario Logo" class="logo-login mb-4">
+                <h3>Esqueceu sua Senha?</h3>
+                <p class="mb-4 text-muted">Não se preocupe! Digite seu e-mail abaixo para enviarmos um código de recuperação.</p>
+
+                <!-- Mensagens de sucesso/erro do backend -->
+                <!-- <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div> -->
+                <!-- <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div> -->
+
+                <form th:action="@{/esqueci-senha-submit}" method="post"> <!-- Endpoint para enviar o e-mail -->
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="emailRecuperacao" name="email" placeholder="seuemail@example.com" required>
+                        <label for="emailRecuperacao" class="form-label">Seu E-mail Cadastrado</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Enviar Link de Recuperação</button>
+                </form>
+
+                <div class="mt-4 links-login">
+                    <p class="mb-0"><a th:href="@{/login}">Voltar para o Login</a></p>
+                </div>
+                <p class="mt-4 mb-1 text-muted copyright-login">© 2024-2025 Pizzaria Mario</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

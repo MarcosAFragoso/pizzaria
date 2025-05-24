@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Redefinir Senha</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="login-container-custom">
+            <div class="login-card-custom text-center">
+                <img th:src="@{/images/logo_pizzaria.png}" alt="Pizzaria Mario Logo" class="logo-login mb-4">
+                <h3>Crie sua Nova Senha</h3>
+                <p class="mb-4 text-muted">Escolha uma senha forte e que você não tenha usado antes.</p>
+
+                <!-- Mensagens de erro do backend -->
+                <!-- <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div> -->
+
+                <form th:action="@{/redefinir-senha-submit}" method="post">
+                    <!-- Campo oculto para o token (o backend deve popular isso ou validar pela URL) -->
+                    <input type="hidden" name="token" th:value="${token}" /> <!-- O controller precisa passar o 'token' para o model -->
+
+                    <!-- Se o token não for passado no model, o backend precisará extraí-lo da URL no momento do POST -->
+
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="novaSenha" name="novaSenha" placeholder="Nova Senha" required>
+                        <label for="novaSenha" class="form-label">Nova Senha</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="password" class="form-control" id="confirmarNovaSenha" name="confirmarNovaSenha" placeholder="Confirme a Nova Senha" required>
+                        <label for="confirmarNovaSenha" class="form-label">Confirmar Nova Senha</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Salvar Nova Senha</button>
+                </form>
+
+                <div class="mt-4 links-login">
+                    <p class="mb-0"><a th:href="@{/login}">Voltar para o Login</a></p>
+                </div>
+                <p class="mt-4 mb-1 text-muted copyright-login">© 2024-2025 Pizzaria Mario</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Finalizar Pedido</title>
+    <!-- Estilos estão em pizzaria_style.css -->
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section">
+        <h2 class="text-center titulo-pagina mb-5">Finalizar Pedido</h2>
+        <div class="row justify-content-center">
+            <div class="col-lg-10 col-xl-8">
+                <div class="card shadow-lg"> <!-- Card principal da página -->
+                    <div class="card-body p-4 p-md-5">
+
+                        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${successMessage}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${errorMessage}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+
+                        <div th:if="${carrinho == null or carrinho.itens.isEmpty()}" class="alert alert-warning text-center">
+                            Seu carrinho está vazio. <a th:href="@{/cardapio}" class="alert-link">Volte ao cardápio</a> para adicionar itens.
+                        </div>
+
+                        <div th:if="${carrinho != null and !carrinho.itens.isEmpty()}">
+                            <section id="resumo-pedido" class="mb-4">
+                                <h4>Resumo do seu Pedido</h4>
+                                <ul class="list-group list-group-flush">
+                                    <li th:each="item : ${carrinho.itens}" class="list-group-item d-flex justify-content-between align-items-center resumo-pedido-item">
+                                        <div>
+                                            <strong th:text="${item.quantidade} + 'x ' + ${item.nomeExibicao}"></strong>
+                                            <small class="d-block text-muted" th:if="${item.observacoes != null and !item.observacoes.isEmpty()}" th:text="'Obs: ' + ${item.observacoes}"></small>
+                                            <div th:if="${item.acompanhamentosSelecionados != null and !item.acompanhamentosSelecionados.isEmpty()}">
+                                                <small class="d-block text-muted ms-2" th:each="acompS : ${item.acompanhamentosSelecionados}">
+                                                    + <span th:text="${acompS.acompanhamento.nome} + ' (x' + ${acompS.quantidadeAcompanhamento} + ')'"></span>
+                                                </small>
+                                            </div>
+                                        </div>
+                                        <span class="badge bg-primary rounded-pill" th:text="'R$ ' + ${#numbers.formatDecimal(item.precoCalculado, 2, 'POINT', 2, 'COMMA')}"></span>
+                                    </li>
+                                </ul>
+                                <hr>
+                                <div class="d-flex justify-content-end">
+                                    <p class="total-pedido">Total: R$ <span th:text="${#numbers.formatDecimal(carrinho.total, 2, 'POINT', 2, 'COMMA')}"></span></p>
+                                </div>
+                            </section>
+
+                            <form th:action="@{/pedido/finalizar}" method="post" id="formCheckout">
+                                <section id="tipo-pedido-section" class="tipo-pedido-section">
+                                    <h5><i class="bi bi-ui-checks-grid"></i> Tipo de Pedido</h5>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="tipoPedido" id="tipoEntrega" value="ENTREGA" checked>
+                                        <label class="form-check-label" for="tipoEntrega">Entrega em Domicílio</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="tipoPedido" id="tipoLocal" value="LOCAL">
+                                        <label class="form-check-label" for="tipoLocal">Consumo no Local</label>
+                                    </div>
+                                </section>
+
+                                <section id="dados-entrega" class="dados-entrega mt-3">
+                                    <h5><i class="bi bi-geo-alt-fill"></i> Endereço de Entrega</h5>
+                                    <div class="form-floating mb-2">
+                                        <input type="text" class="form-control" id="cep" name="endereco.cep" placeholder="CEP" th:value="${usuario?.endereco?.cep}">
+                                        <label for="cep" class="form-label">CEP</label>
+                                    </div>
+                                    <div class="form-floating mb-2">
+                                        <input type="text" class="form-control" id="rua" name="endereco.rua" placeholder="Rua, Avenida..." th:value="${usuario?.endereco?.rua}">
+                                        <label for="rua" class="form-label">Rua / Logradouro</label>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="numero" name="endereco.numero" placeholder="Número" th:value="${usuario?.endereco?.numero}">
+                                                <label for="numero" class="form-label">Número</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="complemento" name="endereco.complemento" placeholder="Complemento (Apto, Bloco)" th:value="${usuario?.endereco?.complemento}">
+                                                <label for="complemento" class="form-label">Complemento</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-floating mb-2">
+                                        <input type="text" class="form-control" id="bairro" name="endereco.bairro" placeholder="Bairro" th:value="${usuario?.endereco?.bairro}">
+                                        <label for="bairro" class="form-label">Bairro</label>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-8">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="cidade" name="endereco.cidade" placeholder="Cidade" th:value="${usuario?.endereco?.cidade}">
+                                                <label for="cidade" class="form-label">Cidade</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-floating">
+                                                <input type="text" class="form-control" id="estado" name="endereco.estado" placeholder="UF" th:value="${usuario?.endereco?.estado}">
+                                                <label for="estado" class="form-label">Estado (UF)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-floating mb-3">
+                                        <input type="tel" class="form-control" id="telefone" name="contato_telefone" placeholder="Telefone para Contato" th:value="${usuario?.telefone}">
+                                        <label for="telefone" class="form-label">Telefone para Contato</label>
+                                    </div>
+                                    <div class="form-check mb-3" sec:authorize="isAuthenticated()">
+                                        <input class="form-check-input" type="checkbox" value="true" id="salvarEnderecoPerfil" name="salvarEnderecoPerfil" checked>
+                                        <label class="form-check-label" for="salvarEnderecoPerfil">
+                                            Salvar este endereço e telefone no meu perfil
+                                        </label>
+                                    </div>
+                                </section>
+
+                                <section id="mesa-info-section" class="mesa-info-section mt-3">
+                                    <h5><i class="bi bi-tablet-landscape-fill"></i> Informações para Consumo no Local</h5>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="number" class="form-control" id="numeroMesa" name="numeroMesa" placeholder="Nº da Mesa" min="1">
+                                                <label for="numeroMesa" class="form-label">Número da Mesa</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating mb-3">
+                                                <input type="number" class="form-control" id="numeroPessoas" name="numeroPessoas" placeholder="Nº de Pessoas" min="1">
+                                                <label for="numeroPessoas" class="form-label">Número de Pessoas</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-floating mb-3" sec:authorize="!isAuthenticated()">
+                                        <input type="text" class="form-control" id="nomeClienteLocal" name="nomeClienteLocal" placeholder="Nome para Identificação">
+                                        <label for="nomeClienteLocal" class="form-label">Nome para Identificação na Mesa</label>
+                                    </div>
+                                </section>
+
+                                <section id="dados-pagamento" class="dados-pagamento mt-3">
+                                    <h5><i class="bi bi-credit-card-fill"></i> Forma de Pagamento</h5>
+                                    <div class="mb-3">
+                                        <select class="form-select" id="formaPagamento" name="formaPagamento">
+                                            <option value="" selected disabled>Selecione...</option>
+                                            <option value="DINHEIRO_LOCAL_ENTREGA">Dinheiro (Pagamento no Local/Entrega)</option>
+                                            <option value="CARTAO_LOCAL_ENTREGA">Cartão (Maquininha no Local/Entrega)</option>
+                                            <option value="PIX_LOCAL_ENTREGA">PIX (QR Code/Chave no Local/Entrega)</option>
+                                        </select>
+                                    </div>
+                                    <div id="detalhesDinheiro" class="detalhes-tipo-pagamento">
+                                        <div class="form-floating mb-3">
+                                            <input type="number" step="0.01" class="form-control" id="trocoPara" name="trocoPara" placeholder="Precisa de troco para quanto?">
+                                            <label for="trocoPara" class="form-label">Troco para (R$)?</label>
+                                        </div>
+                                    </div>
+                                </section>
+                                <button type="submit" class="btn btn-success btn-lg w-100 mt-4">Confirmar Pedido</button>
+                            </form>
+                        </div>
+                        <div class="text-center mt-4">
+                            <a th:href="@{/pedido/bebidas}" class="links-login"><i class="bi bi-arrow-left"></i> Voltar para Bebidas</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Scripts agora estão em pizzaria_script.js e são chamados pelo layout_pizzaria.html -->
+</body>
+</html>

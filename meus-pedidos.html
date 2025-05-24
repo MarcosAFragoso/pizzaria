@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Meus Pedidos - Pizzaria Mario</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section">
+        <h2 class="text-center titulo-pagina mb-4">Meus Pedidos</h2>
+
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+
+        <div th:if="${listaMeusPedidos == null or listaMeusPedidos.isEmpty()}" class="alert alert-info text-center">
+            Você ainda não fez nenhum pedido. <a th:href="@{/cardapio}" class="alert-link">Que tal começar agora?</a>
+        </div>
+
+        <div class="accordion" id="accordionMeusPedidos" th:if="${listaMeusPedidos != null and !listaMeusPedidos.isEmpty()}">
+            <div th:each="pedido, iterStat : ${listaMeusPedidos}" class="accordion-item">
+                <h2 class="accordion-header" th:id="'heading' + ${iterStat.count}">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" th:data-bs-target="'#collapse' + ${iterStat.count}" aria-expanded="false" th:aria-controls="'collapse' + ${iterStat.count}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <span>
+                                Pedido: <strong th:text="${pedido.id}"></strong>
+                                (<span th:text="${#temporals.format(pedido.dataHoraPedido, 'dd/MM/yyyy HH:mm')}"></span>)
+                            </span>
+                            <span th:switch="${pedido.status}" class="badge ms-2"
+                                  th:classappend="${pedido.status == 'RECEBIDO' ? 'bg-info text-dark' :
+                                                   pedido.status == 'AGUARDANDO_PREPARO_MESA' ? 'bg-secondary' :
+                                                   pedido.status == 'EM_PREPARO' ? 'bg-warning text-dark' :
+                                                   pedido.status == 'SAIU_PARA_ENTREGA' ? 'bg-primary' :
+                                                   pedido.status == 'PRONTO_NA_MESA' ? 'bg-primary' :
+                                                   pedido.status == 'ENTREGUE' ? 'bg-success' :
+                                                   pedido.status == 'PAGO_MESA' ? 'bg-success' :
+                                                   pedido.status == 'CANCELADO' ? 'bg-danger' : 'bg-secondary'}">
+                                <th:block th:text="${pedido.status.replace('_', ' ')}"></th:block>
+                            </span>
+                        </div>
+                    </button>
+                </h2>
+                <div th:id="'collapse' + ${iterStat.count}" class="accordion-collapse collapse" th:aria-labelledby="'heading' + ${iterStat.count}" data-bs-parent="#accordionMeusPedidos">
+                    <div class="accordion-body">
+                        <p><strong>Valor Total:</strong> <span th:text="'R$ ' + ${#numbers.formatDecimal(pedido.valorTotal, 2, 'POINT', 2, 'COMMA')}"></span></p>
+                        <p><strong>Forma de Pagamento:</strong> <span th:text="${pedido.formaPagamento}"></span></p>
+                        <p th:if="${pedido.tipoPedido == 'ENTREGA' and pedido.enderecoEntrega != null}">
+                            <strong>Endereço de Entrega:</strong>
+                            <span th:text="${pedido.enderecoEntrega.rua} + ', ' + ${pedido.enderecoEntrega.numero} + ' - ' + ${pedido.enderecoEntrega.bairro} + ', ' + ${pedido.enderecoEntrega.cidade}"></span>
+                        </p>
+                        <p th:if="${pedido.tipoPedido == 'LOCAL' and pedido.numeroMesa != null}">
+                            <strong>Mesa:</strong> <span th:text="${pedido.numeroMesa}"></span>
+                            <span th:if="${pedido.numeroPessoas != null}" th:text="' (' + ${pedido.numeroPessoas} + ' pessoas)'"></span>
+                        </p>
+                        
+                        <h6>Itens:</h6>
+                        <ul class="list-group list-group-flush">
+                            <li th:each="item : ${pedido.itens}" class="list-group-item ps-0">
+                                <strong th:text="${item.quantidade} + 'x ' + ${item.nomeExibicao}"></strong>
+                                <small class="d-block text-muted" th:if="${item.observacoesItem != null and !item.observacoesItem.isEmpty()}" th:text="'Obs: ' + ${item.observacoesItem}"></small>
+                                <div th:if="${item.acompanhamentosDoItem != null and !item.acompanhamentosDoItem.isEmpty()}">
+                                    <small class="d-block text-muted ms-2" th:each="acompNome : ${item.acompanhamentosDoItem}">
+                                        + <span th:text="${acompNome}"></span>
+                                    </small>
+                                </div>
+                                <span class="float-end" th:text="'R$ ' + ${#numbers.formatDecimal(item.precoTotalItem, 2, 'POINT', 2, 'COMMA')}"></span>
+                            </li>
+                        </ul>
+                        <!-- Você pode adicionar um botão para "Repetir Pedido" ou "Ver Detalhes Completos" aqui se necessário -->
+                    </div>
+                </div>
+            </div>
+        </div>
+         <div class="text-center mt-4">
+            <a th:href="@{/cardapio}" class="btn btn-primary"><i class="bi bi-arrow-left"></i> Voltar ao Cardápio</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
