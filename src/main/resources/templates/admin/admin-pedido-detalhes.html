@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title th:text="'Detalhes do Pedido - ' + ${pedido?.id} + ' - Admin'">Detalhes do Pedido</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section">
+        <div th:if="${pedido}">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="titulo-pagina" th:text="'Detalhes do Pedido: ' + ${pedido.id}"></h2>
+                <a th:href="@{/admin/pedidos}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Voltar para Lista de Pedidos</a>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    Informações do Pedido
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Cliente:</strong> <span th:text="${pedido.clienteNome}"></span></p>
+                            <p><strong>Email:</strong> <span th:text="${pedido.clienteEmail}"></span></p>
+                            <p><strong>Telefone:</strong> <span th:text="${pedido.clienteTelefone}"></span></p>
+                            <p><strong>Data do Pedido:</strong> <span th:text="${#temporals.format(pedido.dataHoraPedido, 'dd/MM/yyyy HH:mm:ss')}"></span></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Status Atual:</strong>
+                                <span th:switch="${pedido.status}" class="badge fs-6"
+                                      th:classappend="${pedido.status == 'RECEBIDO' ? 'bg-info text-dark' :
+                                                       pedido.status == 'EM_PREPARO' ? 'bg-warning text-dark' :
+                                                       pedido.status == 'SAIU_PARA_ENTREGA' ? 'bg-primary' :
+                                                       pedido.status == 'ENTREGUE' ? 'bg-success' :
+                                                       pedido.status == 'CANCELADO' ? 'bg-danger' : 'bg-secondary'}">
+                                    <th:block th:text="${pedido.status.replace('_', ' ')}"></th:block>
+                                </span>
+                            </p>
+                            <p><strong>Valor Total:</strong> <span class="fw-bold" th:text="'R$ ' + ${#numbers.formatDecimal(pedido.valorTotal, 2, 'POINT', 2, 'COMMA')}"></span></p>
+                            <p><strong>Forma de Pagamento:</strong> <span th:text="${pedido.formaPagamento}"></span></p>
+                            <p th:if="${pedido.observacoesPagamento != null and !pedido.observacoesPagamento.isEmpty()}"><strong>Obs. Pagamento:</strong> <span th:text="${pedido.observacoesPagamento}"></span></p>
+                        </div>
+                    </div>
+                    <hr>
+                    <h5>Endereço de Entrega</h5>
+                    <p th:if="${pedido.enderecoEntrega}">
+                        <span th:text="${pedido.enderecoEntrega.rua} + ', ' + ${pedido.enderecoEntrega.numero}"></span><br>
+                        <span th:text="${pedido.enderecoEntrega.complemento != null ? pedido.enderecoEntrega.complemento + ' - ' : ''}"></span>
+                        <span th:text="${pedido.enderecoEntrega.bairro}"></span><br>
+                        <span th:text="${pedido.enderecoEntrega.cidade} + ' - ' + ${pedido.enderecoEntrega.estado}"></span><br>
+                        CEP: <span th:text="${pedido.enderecoEntrega.cep}"></span>
+                    </p>
+                    <hr>
+                    <h5>Itens do Pedido</h5>
+                    <ul class="list-group list-group-flush">
+                        <li th:each="item : ${pedido.itens}" class="list-group-item">
+                            <strong th:text="${item.quantidade} + 'x ' + ${item.nomeExibicao}"></strong>
+                            <small class="d-block text-muted" th:if="${item.observacoesItem != null and !item.observacoesItem.isEmpty()}" th:text="'Obs: ' + ${item.observacoesItem}"></small>
+                            <div th:if="${item.acompanhamentosDoItem != null and !item.acompanhamentosDoItem.isEmpty()}">
+                                <small class="d-block text-muted ms-2" th:each="acompNome : ${item.acompanhamentosDoItem}">
+                                    + <span th:text="${acompNome}"></span>
+                                </small>
+                            </div>
+                            <span class="float-end" th:text="'R$ ' + ${#numbers.formatDecimal(item.precoTotalItem, 2, 'POINT', 2, 'COMMA')}"></span>
+                        </li>
+                    </ul>
+                    
+                    <!-- TODO: Formulário para atualizar status do pedido -->
+                    <div class="mt-4 card">
+    <div class="card-header">
+        <h5>Atualizar Status do Pedido</h5>
+    </div>
+    <div class="card-body">
+        <form th:action="@{/admin/pedidos/atualizar-status}" method="post">
+            <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+            <div class="input-group">
+                <select class="form-select" name="novoStatus" id="novoStatus">
+                    <option th:each="s : ${todosStatus}" 
+                            th:value="${s}" 
+                            th:text="${s.replace('_', ' ')}" 
+                            th:selected="${s == pedido.status}">
+                    </option>
+                </select>
+                <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Atualizar Status</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+                </div>
+            </div>
+        </div>
+        <div th:if="${pedido == null}" class="alert alert-danger">
+            Pedido não encontrado. <a th:href="@{/admin/pedidos}">Voltar para lista</a>.
+        </div>
+    </div>
+</div>
+</body>
+</html>

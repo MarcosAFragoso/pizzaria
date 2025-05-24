@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Meu Carrinho</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section">
+        <h2 class="text-center titulo-pagina mb-4">Meu Carrinho de Compras</h2>
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+        <div th:if="${carrinho == null or carrinho.itens.isEmpty()}" class="alert alert-info text-center" role="alert">
+            Seu carrinho está vazio. <a th:href="@{/cardapio}" class="alert-link">Comece a escolher suas pizzas!</a>
+        </div>
+
+        <div th:if="${carrinho != null and !carrinho.itens.isEmpty()}">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Observações</th>
+                        <th class="text-center">Quantidade</th>
+                        <th class="text-end">Preço</th>
+                        <th class="text-center">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item, iterStat : ${carrinho.itens}">
+                        <td th:text="${item.nomeExibicao}">Nome da Pizza</td>
+                        <td th:text="${item.observacoes}"></td>
+                        <td class="text-center" th:text="${item.quantidade}">1</td>
+                        <td class="text-end" th:text="'R$ ' + ${#numbers.formatDecimal(item.precoCalculado, 2, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+                        <td class="text-center">
+                            <a th:href="@{/carrinho/remover/{index}(index=${iterStat.index})}" class="btn btn-danger btn-sm"
+                               onclick="return confirm('Tem certeza que deseja remover este item?');">
+                                Remover
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                        <td class="text-end"><strong>R$ <span th:text="${#numbers.formatDecimal(carrinho.total, 2, 'POINT', 2, 'COMMA')}">0,00</span></strong></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div class="d-flex justify-content-between mt-4">
+                <a th:href="@{/cardapio}" class="btn btn-primary"><i class="bi bi-arrow-left"></i> Continuar Comprando</a>
+                <!-- Link para próxima etapa (acompanhamentos/bebidas ou checkout) -->
+                <a href="#" class="btn btn-success">Ir para Acompanhamentos <i class="bi bi-arrow-right"></i></a>
+                <!-- Ou: <a th:href="@{/checkout}" class="btn btn-success">Finalizar Pedido <i class="bi bi-check-lg"></i></a> -->
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

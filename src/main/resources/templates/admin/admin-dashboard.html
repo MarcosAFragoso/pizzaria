@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout_pizzaria}"> <!-- Pode usar o layout principal ou um específico para admin -->
+<head>
+    <title>Admin Dashboard - Pizzaria Mario</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="text-center titulo-pagina mb-4">Painel do Administrador</h2>
+                
+                <div th:if="${adminMessage}" class="alert alert-info" th:text="${adminMessage}"></div>
+
+                <!-- Acesso Rápido / Seções Principais -->
+                <div class="row mt-4 g-3">
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <i class="bi bi-receipt-cutoff" style="font-size: 3rem; color: var(--bs-primary);"></i>
+                                <h5 class="card-title mt-3">Gerenciar Pedidos</h5>
+                                <p class="card-text">Visualizar, filtrar e atualizar o status dos pedidos dos clientes.</p>
+                                <a href="#" class="btn btn-primary disabled">Ver Pedidos (Em Breve)</a>
+                                <!-- <a th:href="@{/admin/pedidos}" class="btn btn-primary">Ver Pedidos</a> -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <i class="bi bi-fire" style="font-size: 3rem; color: var(--bs-danger);"></i>
+                                <h5 class="card-title mt-3">Controle da Cozinha</h5>
+                                <p class="card-text">Acompanhar o fluxo de preparação dos itens e liberar para entrega/serviço.</p>
+                                <a href="#" class="btn btn-danger disabled">Painel Cozinha (Em Breve)</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <i class="bi bi-book-half" style="font-size: 3rem; color: var(--bs-success);"></i>
+                                <h5 class="card-title mt-3">Gerenciar Cardápio</h5>
+                                <p class="card-text">Adicionar, editar ou remover pizzas, acompanhamentos e bebidas.</p>
+                                <a href="#" class="btn btn-success disabled">Editar Cardápio (Em Breve)</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <i class="bi bi-grid-3x3-gap-fill" style="font-size: 3rem; color: var(--bs-warning);"></i>
+                                <h5 class="card-title mt-3">Controle de Mesas</h5>
+                                <p class="card-text">Gerenciar o status das mesas e pedidos para consumo no local.</p>
+                                <a th:href="@{/admin/pedidos}" class="btn btn-primary">Ver Pedidos</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Adicionar mais cards para outras funcionalidades do admin -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

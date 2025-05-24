@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Escolher Bebidas</title>
+    <!-- Os estilos CSS que você moveu para pizzaria_style.css devem estar lá -->
+</head>
+<body>
+<div layout:fragment="content">
+    <!-- Removido .page-section daqui para testar a centralização apenas com o container e row -->
+    <div class="container py-5"> <!-- Adicionado py-5 para espaçamento vertical (padding top e bottom) -->
+        <div class="row justify-content-center">
+            <!-- Coluna que define a largura do seu conteúdo principal -->
+            <!-- Você pode ajustar col-lg-10 e col-xl-8 para a largura desejada -->
+            <div class="col-11 col-sm-10 col-md-9 col-lg-8 col-xl-7"> <!-- Colunas mais responsivas e um pouco mais estreitas -->
+                <!-- Card principal da página -->
+                <div class="card shadow-lg"> <!-- Usando a classe 'card' padrão do Bootstrap com uma sombra -->
+                    <div class="card-body p-4 p-md-5"> <!-- Padding dentro do card -->
+                        <h3 class="text-center mb-4">Escolha suas Bebidas</h3>
+
+                        <!-- Mensagens de feedback -->
+                        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${successMessage}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${errorMessage}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+
+                        <!-- Seção de Refrigerantes -->
+                        <div th:if="${!refrigerantes.isEmpty()}">
+                            <h4 class="mt-4 mb-3" style="color: #444;">Refrigerantes</h4>
+                            <div th:each="refri : ${refrigerantes}" class="bebida-item">
+                                <div class="bebida-info">
+                                    <h6 th:text="${refri.nome}"></h6>
+                                    <p class="text-muted mb-1" th:if="${refri.descricao != null}" th:text="${refri.descricao}"></p>
+                                    <p class="fw-bold mb-0" th:text="'R$ ' + ${#numbers.formatDecimal(refri.preco, 2, 'POINT', 2, 'COMMA')}"></p>
+                                </div>
+                                <div class="bebida-action">
+                                    <form th:action="@{/carrinho/adicionar-bebida}" method="post" class="d-inline-flex align-items-center">
+                                        <input type="hidden" name="bebidaId" th:value="${refri.id}" />
+                                        <input type="number" name="quantidade" value="1" min="1" class="form-control form-control-sm me-2">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Adicionar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Seção de Vinhos -->
+                        <div th:if="${!vinhos.isEmpty()}">
+                            <h4 class="mt-5 mb-3" style="color: #444;">Vinhos</h4>
+                            <div th:each="vinho : ${vinhos}" class="bebida-item">
+                                <div class="bebida-info">
+                                    <h6 th:text="${vinho.nome}"></h6>
+                                    <p class="text-muted mb-1" th:if="${vinho.descricao != null}" th:text="${vinho.descricao}"></p>
+                                    <p class="fw-bold mb-0" th:text="'R$ ' + ${#numbers.formatDecimal(vinho.preco, 2, 'POINT', 2, 'COMMA')}"></p>
+                                </div>
+                                <div class="bebida-action">
+                                    <form th:action="@{/carrinho/adicionar-bebida}" method="post" class="d-inline-flex align-items-center">
+                                        <input type="hidden" name="bebidaId" th:value="${vinho.id}" />
+                                        <input type="number" name="quantidade" value="1" min="1" class="form-control form-control-sm me-2">
+                                        <button type="submit" class="btn btn-sm btn-outline-success">Adicionar</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-5 pt-4 border-top">
+                            <a th:href="@{/pedido/acompanhamentos}" class="btn btn-outline-secondary btn-lg"><i class="bi bi-arrow-left"></i> Acompanhamentos</a>
+                            <a th:href="@{/checkout}" class="btn btn-primary btn-lg">Finalizar Pedido <i class="bi bi-arrow-right"></i></a>
+                        </div>
+                    </div> <!-- Fim do card-body -->
+                </div> <!-- Fim do card -->
+            </div> <!-- Fim da coluna principal do conteúdo -->
+        </div> <!-- Fim do row justify-content-center -->
+    </div> <!-- Fim do container -->
+</div> <!-- Fim do layout:fragment -->
+</body>
+</html>

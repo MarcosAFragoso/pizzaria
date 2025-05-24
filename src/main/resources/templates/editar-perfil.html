@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Editar Perfil</title>
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container page-section">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-7 col-xl-6">
+                    <div class="login-card-custom p-4 p-md-5">
+                        <div class="text-center mb-4">
+                            <img th:src="@{/images/logo_pizzaria.png}" alt="Pizzaria Mario Logo" class="logo-login">
+                            <h3>Editar Perfil</h3>
+                        </div>
+
+                        <div th:if="${successMessage}" class="alert alert-success" role="alert" th:text="${successMessage}"></div>
+                        <div th:if="${errorMessage}" class="alert alert-danger" role="alert" th:text="${errorMessage}"></div>
+
+                        <form th:action="@{/editar-perfil}" th:object="${user}" method="post">
+                            <input type="hidden" th:field="*{id}" />
+
+                            <div class="form-floating mb-3">
+                                <input type="text" class="form-control" id="nomeCompleto" th:field="*{nomeCompleto}" placeholder="Nome Completo" required>
+                                <label for="nomeCompleto" class="form-label">Nome Completo</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="email" class="form-control" id="email" th:field="*{email}" placeholder="E-mail" required>
+                                <label for="email" class="form-label">E-mail</label>
+                            </div>
+
+                            <hr class="my-4">
+                            <h5 class="mb-3 text-muted">Alterar Senha <small>(opcional)</small></h5>
+
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="senhaAtual" name="senhaAtual" placeholder="Senha Atual (se for alterar)">
+                                <label for="senhaAtual" class="form-label">Senha Atual</label>
+                                <small class="form-text text-muted">Preencha apenas se desejar alterar a senha.</small>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="novaSenha" name="novaSenha" placeholder="Nova Senha">
+                                <label for="novaSenha" class="form-label">Nova Senha</label>
+                            </div>
+
+                            <div class="form-floating mb-3">
+                                <input type="password" class="form-control" id="confirmarNovaSenha" name="confirmarNovaSenha" placeholder="Confirmar Nova Senha">
+                                <label for="confirmarNovaSenha" class="form-label">Confirmar Nova Senha</label>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 py-2 mt-3">Salvar Alterações</button>
+                        </form>
+
+                        <div class="mt-4 text-center">
+                            <a th:href="@{/}" class="links-login">Voltar para a Página Inicial</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

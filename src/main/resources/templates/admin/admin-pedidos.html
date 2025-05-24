@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}"> <!-- Ou um layout_admin se criado -->
+<head>
+    <title>Gerenciar Pedidos - Admin</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="titulo-pagina">Gerenciar Pedidos</h2>
+            <a th:href="@{/admin/dashboard}" class="btn btn-outline-secondary">Voltar ao Dashboard</a>
+        </div>
+
+        <div th:if="${listaPedidos.isEmpty()}" class="alert alert-info">
+            Nenhum pedido encontrado.
+        </div>
+
+        <div class="table-responsive" th:if="${!listaPedidos.isEmpty()}">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID Pedido</th>
+                        <th>Data/Hora</th>
+                        <th>Cliente</th>
+                        <th>Valor Total</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="pedido : ${listaPedidos}">
+                        <td th:text="${pedido.id}"></td>
+                        <td th:text="${#temporals.format(pedido.dataHoraPedido, 'dd/MM/yyyy HH:mm')}"></td>
+                        <td th:text="${pedido.clienteNome} + ' (' + ${pedido.clienteEmail} + ')'"></td>
+                        <td th:text="'R$ ' + ${#numbers.formatDecimal(pedido.valorTotal, 2, 'POINT', 2, 'COMMA')}"></td>
+                        <td>
+                            <span th:switch="${pedido.status}" class="badge"
+                                  th:classappend="${pedido.status == 'RECEBIDO' ? 'bg-info text-dark' :
+                                                   pedido.status == 'EM_PREPARO' ? 'bg-warning text-dark' :
+                                                   pedido.status == 'SAIU_PARA_ENTREGA' ? 'bg-primary' :
+                                                   pedido.status == 'ENTREGUE' ? 'bg-success' :
+                                                   pedido.status == 'CANCELADO' ? 'bg-danger' : 'bg-secondary'}">
+                                <th:block th:text="${pedido.status.replace('_', ' ')}"></th:block>
+                            </span>
+                        </td>
+                        <td>
+                            <a th:href="@{/admin/pedidos/detalhes/{id}(id=${pedido.id})}" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye-fill"></i> Detalhes
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

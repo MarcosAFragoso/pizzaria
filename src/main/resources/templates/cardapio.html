@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Nosso Cardápio</title>
+    
+</head>
+<body>
+    <div layout:fragment="content">
+        <div class="container mt-5">
+            <h1 class="text-center titulo-pagina">Cardápio</h1>
+
+            <div th:if="${pizzas.isEmpty()}" class="alert alert-warning" role="alert">
+                Nenhuma pizza disponível no momento. Volte mais tarde!
+            </div>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:unless="${pizzas.isEmpty()}">
+                <div class="col" th:each="pizza : ${pizzas}">
+                    <div class="card h-100 shadow-sm card-pizza"> <!-- Classe 'card-pizza' adicionada -->
+                        <img th:src="@{${pizza.imagemUrl}}" class="card-img-top" th:alt="${pizza.nome}">
+                        <div class="card-body">
+                            <h5 class="card-title" th:text="${pizza.nome}">Nome da Pizza</h5>
+                            <p class="card-text descricao-pizza" th:text="${pizza.descricao}">Descrição da pizza.</p>
+                            <p class="card-text ingredientes-pizza">
+                                <strong>Ingredientes:</strong>
+                                <span th:each="ingrediente, iterStat : ${pizza.ingredientes}" th:text="${ingrediente + (iterStat.last ? '' : ', ')}"></span>
+                            </p>
+                            <p class="card-text preco-pizza">
+                                <strong>Preço: R$ </strong>
+                                <span th:text="${#numbers.formatDecimal(pizza.preco, 1, 'POINT', 2, 'COMMA')}">0,00</span>
+                            </p>
+                            <a th:href="@{/pedido/montar/{pizzaId}(pizzaId=${pizza.id})}" class="btn btn-primary w-100">Escolher Pizza</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title th:text="'Montar Pizza - ' + ${pizzaPrincipal.nome}">Montar Pizza</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section">
+        <div class="row justify-content-center">
+            <div class="col-xl-7 col-lg-8 col-md-10 col-12"> <!-- Coluna para controlar a largura -->
+                <div class="card shadow-lg">
+                    <div class="card-body p-4 p-md-5">
+                        <h3 class="text-center mb-4 titulo-pagina-no-card" th:text="'Detalhes da Pizza: ' + ${pizzaPrincipal.nome}">Detalhes da Pizza</h3>
+
+                        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${errorMessage}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${successMessage}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+
+                        <form th:action="@{/carrinho/adicionar-pizza}" method="post">
+                            <input type="hidden" name="pizza1Id" th:value="${pizzaPrincipal.id}" />
+
+                            <div class="row align-items-center mb-4">
+                                <div class="col-md-4 text-center mb-3 mb-md-0">
+                                    <img th:src="@{${pizzaPrincipal.imagemUrl}}" class="img-fluid rounded shadow-sm" style="max-height: 180px;" th:alt="${pizzaPrincipal.nome}">
+                                </div>
+                                <div class="col-md-8">
+                                    <p class="lead" style="font-size: 1.1rem; color: #495057;" th:text="${pizzaPrincipal.descricao}"></p>
+                                    <p class="h5 fw-bold" style="color: #198754;">Preço (inteira): R$ <span th:text="${#numbers.formatDecimal(pizzaPrincipal.preco, 2, 'POINT', 2, 'COMMA')}"></span></p>
+                                </div>
+                            </div>
+
+                            <div class="mb-3 tipo-pedido-section p-3">
+                                <label class="form-label fw-bold d-block mb-2" style="color: #343a40;">Como você quer sua pizza?</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="tipoEscolha" id="tipoInteira" value="inteira" checked>
+                                    <label class="form-check-label" for="tipoInteira" style="color: #212529;">
+                                        Inteira <span class="fw-normal" th:text="${pizzaPrincipal.nome}"></span>
+                                    </label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="tipoEscolha" id="tipoMetade" value="metade">
+                                    <label class="form-check-label" for="tipoMetade" style="color: #212529;">
+                                        Metade <span class="fw-normal" th:text="${pizzaPrincipal.nome}"></span> / Metade Outro Sabor
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3" id="selectMetade2" style="display: none;">
+                                <label for="pizza2Id" class="form-label fw-bold" style="color: #343a40;">Escolha a segunda metade:</label>
+                                <select class="form-select form-select-lg" id="pizza2Id" name="pizza2Id">
+                                    <option value="" selected>Selecione um sabor...</option>
+                                    <option th:each="pizza : ${todasAsPizzas}"
+                                            th:value="${pizza.id}"
+                                            th:text="${pizza.nome + ' (+ R$ ' + #numbers.formatDecimal(pizza.preco.divide(new java.math.BigDecimal(2), 2, T(java.math.RoundingMode).HALF_UP), 2, 'POINT', 2, 'COMMA') + ')'}"
+                                            th:disabled="${pizza.id == pizzaPrincipal.id}">
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="row g-3 align-items-end mb-3">
+                                <div class="col-md-3">
+                                     <label for="quantidade" class="form-label fw-bold" style="color: #343a40;">Quantidade:</label>
+                                    <input type="number" class="form-control form-control-lg" id="quantidade" name="quantidade" value="1" min="1" required>
+                                </div>
+                                <div class="col-md-9">
+                                    <label for="observacoes" class="form-label fw-bold" style="color: #343a40;">Observações:</label>
+                                    <textarea class="form-control" id="observacoes" name="observacoes" rows="2" placeholder="Ex: Sem cebola, borda recheada..."></textarea>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-success btn-lg w-100 mt-4">Adicionar ao Carrinho e Ir para Acompanhamentos</button>
+                        </form>
+                        <div class="text-center mt-4">
+                            <a th:href="@{/cardapio}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Voltar ao Cardápio</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
