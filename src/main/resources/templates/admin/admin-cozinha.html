@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title>Painel da Cozinha - Pizzaria Mario</title>
+    <style>
+        .pedido-card { margin-bottom: 1.5rem; }
+        .pedido-card .card-header { font-weight: bold; }
+        .pedido-card .list-group-item { border-left: 0; border-right: 0;}
+        .actions-cozinha .input-group .form-select {
+            /* Ajuste opcional para o tamanho do select */
+            /* font-size: 0.875rem; */
+            /* padding-top: 0.25rem; */
+            /* padding-bottom: 0.25rem; */
+        }
+        .actions-cozinha .input-group .btn {
+            /* Ajuste opcional para o tamanho do botão */
+            /* font-size: 0.875rem; */
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="titulo-pagina">Painel da Cozinha</h2>
+            <a th:href="@{/admin/dashboard}" class="btn btn-dark"><i class="bi bi-arrow-left-circle"></i> Voltar ao Dashboard</a>
+        </div>
+
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert" th:text="${successMessage}">...</div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert" th:text="${errorMessage}">...</div>
+
+        <div th:if="${pedidosCozinha == null or pedidosCozinha.isEmpty()}" class="alert alert-info">
+            Nenhum pedido pendente para preparo no momento.
+        </div>
+
+        <div class="row" th:if="${pedidosCozinha != null and !pedidosCozinha.isEmpty()}">
+            <div th:each="pedido : ${pedidosCozinha}" class="col-md-6 col-lg-4">
+                <div class="card pedido-card shadow-sm">
+                    <div class="card-header"
+                         th:classappend="${#strings.equals(pedido.status, 'RECEBIDO')} ? 'bg-info text-dark' :
+                                       (${#strings.equals(pedido.status, 'AGUARDANDO_PREPARO_MESA')} ? 'bg-secondary text-white' :
+                                       (${#strings.equals(pedido.status, 'EM_PREPARO')} ? 'bg-warning text-dark' : 'bg-light'))">
+                        Pedido Nº <span th:text="${pedido.numeroPedidoExibicao ?: pedido.id}"></span>
+                        - <span th:text="${pedido.tipoPedido == 'LOCAL' ? 'Mesa ' + pedido.numeroMesa : 'Entrega'}"></span>
+                        <small class="float-end" th:text="${#temporals.format(pedido.dataHoraPedido, 'HH:mm')}"></small>
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-subtitle mb-2 text-muted" th:text="${pedido.clienteNome}"></h6>
+                        <ul class="list-group list-group-flush">
+                            <li th:each="item : ${pedido.itens}" class="list-group-item px-0">
+                                <strong th:text="${item.quantidade} + 'x ' + ${item.nomeExibicao}"></strong>
+                                <div th:if="${item.observacoesItem != null and !#strings.isEmpty(item.observacoesItem)}" style="font-size: 0.85em; color: #555;">
+                                    Obs: <span th:text="${item.observacoesItem}"></span>
+                                </div>
+                                <div th:if="${item.acompanhamentosDoItem != null and !item.acompanhamentosDoItem.isEmpty()}" style="font-size: 0.85em; color: #555;">
+                                    <th:block th:each="acompNome : ${item.acompanhamentosDoItem}">
+                                        + <span th:text="${acompNome}"></span><br/>
+                                    </th:block>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-footer actions-cozinha">
+                        <!-- FORMULÁRIO COM DROPDOWN PARA ATUALIZAR STATUS -->
+                        <form th:action="@{/admin/pedidos/atualizar-status}" method="post" class="input-group input-group-sm">
+                            <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+                            <input type="hidden" name="origem" value="cozinha" />
+                            
+                            <select class="form-select" name="novoStatus">
+                                <option value="" disabled selected>Mudar para...</option>
+                                
+                                <th:block th:if="${#strings.equals(pedido.status, 'RECEBIDO') or #strings.equals(pedido.status, 'AGUARDANDO_PREPARO_MESA')}">
+                                    <option value="EM_PREPARO">Iniciar Preparo</option>
+                                </th:block>
+                                
+                                <th:block th:if="${#strings.equals(pedido.status, 'EM_PREPARO')}">
+                                    <option th:if="${#strings.equals(pedido.tipoPedido, 'LOCAL')}" value="PRONTO_NA_MESA">Pronto na Mesa</option>
+                                    <option th:if="${#strings.equals(pedido.tipoPedido, 'ENTREGA')}" value="PRONTO_PARA_ENTREGA">Pronto p/ Entrega</option>
+                                </th:block>
+                                <!-- Opção de Cancelar pode ser adicionada aqui se necessário -->
+                            </select>
+                            <button type="submit" class="btn btn-outline-primary" 
+                                    th:disabled="${!((#strings.equals(pedido.status, 'RECEBIDO') or #strings.equals(pedido.status, 'AGUARDANDO_PREPARO_MESA')) or #strings.equals(pedido.status, 'EM_PREPARO'))}">OK</button>
+                        </form>
+                        
+                        <a th:href="@{/admin/pedidos/detalhes/{id}(id=${pedido.id}, origem='cozinha')}" class="btn btn-sm btn-outline-secondary float-end mt-1" title="Ver Detalhes Completos">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

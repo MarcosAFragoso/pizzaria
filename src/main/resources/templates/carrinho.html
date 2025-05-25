@@ -50,12 +50,29 @@
                     </tr>
                 </tfoot>
             </table>
-            <div class="d-flex justify-content-between mt-4">
-                <a th:href="@{/cardapio}" class="btn btn-primary"><i class="bi bi-arrow-left"></i> Continuar Comprando</a>
-                <!-- Link para próxima etapa (acompanhamentos/bebidas ou checkout) -->
-                <a href="#" class="btn btn-success">Ir para Acompanhamentos <i class="bi bi-arrow-right"></i></a>
-                <!-- Ou: <a th:href="@{/checkout}" class="btn btn-success">Finalizar Pedido <i class="bi bi-check-lg"></i></a> -->
+            
+            <!-- SEÇÃO DE BOTÕES MODIFICADA -->
+            <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top"> 
+                <!-- Botão Continuar Comprando (menos destaque) -->
+                <a th:href="@{/cardapio}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Continuar Comprando
+                </a>
+                
+                <!-- Grupo de botões para ações de prosseguir -->
+                <div>
+                    <!-- Botão Acompanhamentos (destaque moderado) -->
+                    <a th:href="@{/pedido/acompanhamentos}" class="btn btn-info me-2"> 
+                        Adicionar Acompanhamentos <i class="bi bi-plus-circle"></i>
+                    </a>
+                    
+                    <!-- Botão Finalizar Pedido (maior destaque) -->
+                    <a th:href="@{/checkout}" class="btn btn-success">
+                        Finalizar Pedido <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
             </div>
+            <!-- FIM DA SEÇÃO DE BOTÕES MODIFICADA -->
+
         </div>
     </div>
 </div>

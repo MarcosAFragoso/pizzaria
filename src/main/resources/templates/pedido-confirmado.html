@@ -15,7 +15,7 @@
                         <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
                         <h2 class="mt-3">Pedido Recebido!</h2>
                         <p class="lead">Obrigado por seu pedido, <span th:if="${#authentication.principal != null and #authentication.principal != 'anonymousUser'}" th:text="${#authentication.principal.nomeCompleto ?: #authentication.principal.username}">Cliente</span>!</p>
-                        <p>Seu pedido número <strong th:text="${numeroPedido}">[Número do Pedido]</strong> foi registrado com sucesso.</p>
+                        <p>Seu pedido número <strong th:text="${numeroPedidoExibicao ?: 'Processando...'}">[Número do Pedido]</strong> foi registrado com sucesso.</p>
                         <p>Entraremos em contato em breve para confirmar os detalhes da entrega ou você pode acompanhar o status em "Meus Pedidos".</p>
                         <hr class="my-4">
                         <a th:href="@{/cardapio}" class="btn btn-primary btn-lg">Continuar Comprando</a>

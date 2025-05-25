@@ -3,60 +3,92 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout_pizzaria}">
 <head>
-    <title th:text="'Detalhes do Pedido - ' + ${pedido?.id} + ' - Admin'">Detalhes do Pedido</title>
+    <title th:text="'Detalhes do Pedido - Nº ' + (${pedido?.numeroPedidoExibicao} ?: ${pedido?.id}) + ' - Admin'">Detalhes do Pedido</title>
 </head>
 <body>
 <div layout:fragment="content">
     <div class="container page-section">
-        <div th:if="${pedido}">
+        <div th:if="${pedido != null}">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="titulo-pagina" th:text="'Detalhes do Pedido: ' + ${pedido.id}"></h2>
-                <a th:href="@{/admin/pedidos}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Voltar para Lista de Pedidos</a>
+                <h2 class="titulo-pagina" th:text="'Detalhes do Pedido: Nº ' + (${pedido.numeroPedidoExibicao} ?: ${pedido.id})"></h2>
+                <!-- Botão Voltar já está dinâmico com base em linkVoltar -->
+                <a th:href="@{${linkVoltar != null ? linkVoltar : '/admin/pedidos'}}" class="btn btn-dark">
+                    <i th:if="${linkVoltar != null and #strings.contains(linkVoltar, 'cozinha')}" class="bi bi-fire"></i>
+                    <i th:unless="${linkVoltar != null and #strings.contains(linkVoltar, 'cozinha')}" class="bi bi-list-ul"></i>
+                    <span th:text="${linkVoltar != null and #strings.contains(linkVoltar, 'cozinha') ? 'Voltar para Cozinha' : 'Voltar para Lista'}"></span>
+                </a>
             </div>
+
+            <!-- Mensagens de feedback ... -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert" th:text="${successMessage}">...</div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert" th:text="${errorMessage}">...</div>
+
 
             <div class="card">
                 <div class="card-header">
                     Informações do Pedido
                 </div>
                 <div class="card-body">
-                    <div class="row">
+                    <!-- ... (seção de informações do pedido, endereço, itens - como estava antes) ... -->
+                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Cliente:</strong> <span th:text="${pedido.clienteNome}"></span></p>
-                            <p><strong>Email:</strong> <span th:text="${pedido.clienteEmail}"></span></p>
-                            <p><strong>Telefone:</strong> <span th:text="${pedido.clienteTelefone}"></span></p>
-                            <p><strong>Data do Pedido:</strong> <span th:text="${#temporals.format(pedido.dataHoraPedido, 'dd/MM/yyyy HH:mm:ss')}"></span></p>
+                            <p><strong>Cliente:</strong> <span th:text="${pedido.clienteNome ?: 'Não informado'}"></span></p>
+                            <p><strong>Email:</strong> <span th:text="${pedido.clienteEmail ?: 'Não informado'}"></span></p>
+                            <p><strong>Telefone:</strong> <span th:text="${pedido.clienteTelefone ?: 'Não informado'}"></span></p>
+                            <p><strong>Data do Pedido:</strong> <span th:text="${pedido.dataHoraPedido != null ? #temporals.format(pedido.dataHoraPedido, 'dd/MM/yyyy HH:mm:ss') : 'N/A'}"></span></p>
                         </div>
                         <div class="col-md-6">
                             <p><strong>Status Atual:</strong>
-                                <span th:switch="${pedido.status}" class="badge fs-6"
-                                      th:classappend="${pedido.status == 'RECEBIDO' ? 'bg-info text-dark' :
-                                                       pedido.status == 'EM_PREPARO' ? 'bg-warning text-dark' :
-                                                       pedido.status == 'SAIU_PARA_ENTREGA' ? 'bg-primary' :
-                                                       pedido.status == 'ENTREGUE' ? 'bg-success' :
-                                                       pedido.status == 'CANCELADO' ? 'bg-danger' : 'bg-secondary'}">
-                                    <th:block th:text="${pedido.status.replace('_', ' ')}"></th:block>
+                                <span class="badge fs-6"
+                                      th:classappend="${#strings.equals(pedido.status, 'RECEBIDO')} ? 'bg-info text-dark' :
+                                                       (${#strings.equals(pedido.status, 'AGUARDANDO_PREPARO_MESA')} ? 'bg-secondary' :
+                                                       (${#strings.equals(pedido.status, 'EM_PREPARO')} ? 'bg-warning text-dark' :
+                                                       (${#strings.equals(pedido.status, 'PRONTO_NA_MESA')} ? 'bg-primary' :
+                                                       (${#strings.equals(pedido.status, 'SAIU_PARA_ENTREGA')} ? 'bg-primary' :
+                                                       (${#strings.equals(pedido.status, 'ENTREGUE')} ? 'bg-success' :
+                                                       (${#strings.equals(pedido.status, 'PAGO_MESA')} ? 'bg-success' :
+                                                       (${#strings.equals(pedido.status, 'CANCELADO')} ? 'bg-danger' : 'bg-light text-dark')))))))">
+                                    <th:block th:text="${pedido.status != null ? #strings.replace(pedido.status, '_', ' ') : 'N/A'}"></th:block>
                                 </span>
                             </p>
                             <p><strong>Valor Total:</strong> <span class="fw-bold" th:text="'R$ ' + ${#numbers.formatDecimal(pedido.valorTotal, 2, 'POINT', 2, 'COMMA')}"></span></p>
-                            <p><strong>Forma de Pagamento:</strong> <span th:text="${pedido.formaPagamento}"></span></p>
-                            <p th:if="${pedido.observacoesPagamento != null and !pedido.observacoesPagamento.isEmpty()}"><strong>Obs. Pagamento:</strong> <span th:text="${pedido.observacoesPagamento}"></span></p>
+                            <p><strong>Forma de Pagamento:</strong>
+                                <span th:if="${pedido.formaPagamento != null}" th:text="${#strings.replace(pedido.formaPagamento, '_', ' ')}"></span>
+                                <span th:if="${pedido.formaPagamento == null and #strings.equals(pedido.tipoPedido, 'LOCAL')}" class="text-muted">A definir (Consumo Local)</span>
+                                <span th:if="${pedido.formaPagamento == null and #strings.equals(pedido.tipoPedido, 'ENTREGA')}" class="text-danger">ERRO: Não definida</span>
+                            </p>
+                            <p th:if="${pedido.observacoesPagamento != null and !#strings.isEmpty(pedido.observacoesPagamento)}"><strong>Obs. Pagamento:</strong> <span th:text="${pedido.observacoesPagamento}"></span></p>
                         </div>
                     </div>
                     <hr>
-                    <h5>Endereço de Entrega</h5>
-                    <p th:if="${pedido.enderecoEntrega}">
-                        <span th:text="${pedido.enderecoEntrega.rua} + ', ' + ${pedido.enderecoEntrega.numero}"></span><br>
-                        <span th:text="${pedido.enderecoEntrega.complemento != null ? pedido.enderecoEntrega.complemento + ' - ' : ''}"></span>
-                        <span th:text="${pedido.enderecoEntrega.bairro}"></span><br>
-                        <span th:text="${pedido.enderecoEntrega.cidade} + ' - ' + ${pedido.enderecoEntrega.estado}"></span><br>
-                        CEP: <span th:text="${pedido.enderecoEntrega.cep}"></span>
-                    </p>
-                    <hr>
+                    
+                    <div th:if="${#strings.equals(pedido.tipoPedido, 'ENTREGA') and pedido.enderecoEntrega != null}">
+                        <h5>Endereço de Entrega</h5>
+                        <p>
+                            <span th:text="${pedido.enderecoEntrega.rua} + ', ' + ${pedido.enderecoEntrega.numero}"></span><br/>
+                            <span th:if="${pedido.enderecoEntrega.complemento != null and !#strings.isEmpty(pedido.enderecoEntrega.complemento)}" 
+                                  th:text="${pedido.enderecoEntrega.complemento} + ' - '"></span>
+                            <span th:text="${pedido.enderecoEntrega.bairro}"></span><br/>
+                            <span th:text="${pedido.enderecoEntrega.cidade} + ' - ' + ${pedido.enderecoEntrega.estado}"></span><br/>
+                            CEP: <span th:text="${pedido.enderecoEntrega.cep}"></span>
+                        </p>
+                        <hr>
+                    </div>
+                    
+                    <div th:if="${#strings.equals(pedido.tipoPedido, 'LOCAL')}">
+                        <h5>Informações da Mesa</h5>
+                        <p>
+                            <strong>Mesa:</strong> <span th:text="${pedido.numeroMesa ?: 'Não informada'}"></span>
+                            <span th:if="${pedido.numeroPessoas != null}" th:text="' (' + ${pedido.numeroPessoas} + ' pessoas)'"></span>
+                        </p>
+                        <hr>
+                    </div>
+
                     <h5>Itens do Pedido</h5>
-                    <ul class="list-group list-group-flush">
-                        <li th:each="item : ${pedido.itens}" class="list-group-item">
+                    <ul class="list-group list-group-flush mb-4">
+                       <li th:each="item : ${pedido.itens}" class="list-group-item">
                             <strong th:text="${item.quantidade} + 'x ' + ${item.nomeExibicao}"></strong>
-                            <small class="d-block text-muted" th:if="${item.observacoesItem != null and !item.observacoesItem.isEmpty()}" th:text="'Obs: ' + ${item.observacoesItem}"></small>
+                            <small class="d-block text-muted" th:if="${item.observacoesItem != null and !#strings.isEmpty(item.observacoesItem)}" th:text="'Obs: ' + ${item.observacoesItem}"></small>
                             <div th:if="${item.acompanhamentosDoItem != null and !item.acompanhamentosDoItem.isEmpty()}">
                                 <small class="d-block text-muted ms-2" th:each="acompNome : ${item.acompanhamentosDoItem}">
                                     + <span th:text="${acompNome}"></span>
@@ -66,35 +98,105 @@
                         </li>
                     </ul>
                     
-                    <!-- TODO: Formulário para atualizar status do pedido -->
-                    <div class="mt-4 card">
-    <div class="card-header">
-        <h5>Atualizar Status do Pedido</h5>
-    </div>
-    <div class="card-body">
-        <form th:action="@{/admin/pedidos/atualizar-status}" method="post">
-            <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
-            <div class="input-group">
-                <select class="form-select" name="novoStatus" id="novoStatus">
-                    <option th:each="s : ${todosStatus}" 
-                            th:value="${s}" 
-                            th:text="${s.replace('_', ' ')}" 
-                            th:selected="${s == pedido.status}">
-                    </option>
-                </select>
-                <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Atualizar Status</button>
-            </div>
-        </form>
-    </div>
-</div>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5><i class="bi bi-arrow-repeat"></i> Atualizar Status do Pedido</h5>
+                        </div>
+                        <div class="card-body">
+                            <form th:action="@{/admin/pedidos/atualizar-status}" method="post">
+                                <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+                                <!-- Adiciona o parâmetro origem se ele existir e for 'cozinha' -->
+                                <input type="hidden" name="origem" th:if="${linkVoltar != null and #strings.contains(linkVoltar, 'cozinha')}" value="cozinha" />
+                                <div class="input-group">
+                                    <select class="form-select" name="novoStatus" id="novoStatus">
+                                        <option th:each="s : ${todosStatus}" 
+                                                th:value="${s}" 
+                                                th:text="${#strings.replace(s, '_', ' ')}" 
+                                                th:selected="${#strings.equals(s, pedido.status)}">
+                                        </option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Atualizar Status</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
-                </div>
-            </div>
+                    <!-- MODIFICADO: Seção de Registrar Pagamento agora é condicional -->
+                    <div th:if="${linkVoltar == null or !#strings.contains(linkVoltar, 'cozinha')}">
+                        <div th:if="${#strings.equals(pedido.tipoPedido, 'LOCAL') and pedido.formaPagamento == null and !#strings.equals(pedido.status, 'CANCELADO')}" class="card">
+                            <div class="card-header bg-success text-white">
+                                <h5><i class="bi bi-cash-coin"></i> Registrar Pagamento e Fechar Conta da Mesa</h5>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{/admin/pedidos/registrar-pagamento-local}" method="post" id="formRegistrarPagamentoLocal">
+                                    <input type="hidden" name="pedidoId" th:value="${pedido.id}" />
+                                    
+                                    <div class="mb-3">
+                                        <label for="adminFormaPagamento" class="form-label">Forma de Pagamento:</label>
+                                        <select class="form-select" id="adminFormaPagamento" name="adminFormaPagamento" required>
+                                            <option value="" selected disabled>Selecione...</option>
+                                            <option value="DINHEIRO_LOCAL">Dinheiro</option>
+                                            <option value="CARTAO_DEBITO_LOCAL">Cartão de Débito</option>
+                                            <option value="CARTAO_CREDITO_LOCAL">Cartão de Crédito</option>
+                                            <option value="PIX_LOCAL">PIX</option>
+                                        </select>
+                                    </div>
+
+                                    <div id="adminDetalhesDinheiro" style="display: none;">
+                                        <div class="form-floating mb-3">
+                                            <input type="number" step="0.01" class="form-control" id="adminTrocoPara" name="adminTrocoPara" placeholder="Valor recebido (para troco)">
+                                            <label for="adminTrocoPara">Valor Recebido (R$):</label>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-floating mb-3">
+                                        <textarea class="form-control" id="adminObservacoesPagamento" name="adminObservacoesPagamento" placeholder="Observações adicionais" style="height: 70px"></textarea>
+                                        <label for="adminObservacoesPagamento">Observações do Pagamento (opcional)</label>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-success w-100"><i class="bi bi-check-circle-fill"></i> Confirmar Pagamento e Fechar</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                     <!-- FIM DA MODIFICAÇÃO DA SEÇÃO DE PAGAMENTO -->
+
+                </div> 
+            </div> 
         </div>
         <div th:if="${pedido == null}" class="alert alert-danger">
             Pedido não encontrado. <a th:href="@{/admin/pedidos}">Voltar para lista</a>.
         </div>
     </div>
 </div>
+
+<th:block layout:fragment="pageScripts">
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+        const formaPagamentoSelect = document.getElementById('adminFormaPagamento');
+        const detalhesDinheiroDiv = document.getElementById('adminDetalhesDinheiro');
+
+        // Só adiciona o listener se os elementos existirem (ou seja, se a seção de pagamento for renderizada)
+        if (formaPagamentoSelect && detalhesDinheiroDiv) {
+            formaPagamentoSelect.addEventListener('change', function() {
+                if (this.value === 'DINHEIRO_LOCAL') {
+                    detalhesDinheiroDiv.style.display = 'block';
+                } else {
+                    detalhesDinheiroDiv.style.display = 'none';
+                }
+            });
+            // Estado inicial
+            if (formaPagamentoSelect.value === 'DINHEIRO_LOCAL') {
+                 detalhesDinheiroDiv.style.display = 'block';
+            } else {
+                 detalhesDinheiroDiv.style.display = 'none';
+            }
+        }
+    });
+    /*]]>*/
+</script>
+</th:block>
+
 </body>
 </html>

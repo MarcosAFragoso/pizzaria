@@ -1,11 +1,14 @@
 package com.fatec.Pizzaria_Mario.repository;
 
 import com.fatec.Pizzaria_Mario.model.Pizza;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;
 
 public interface PizzaRepository extends MongoRepository<Pizza, String> {
-    // MongoRepository já fornece métodos como findAll(), findById(), save(), deleteById()
-    // Podemos adicionar métodos de busca personalizados aqui se necessário
-    List<Pizza> findByDisponivelTrue();
+    // Método para buscar todas as pizzas disponíveis, ordenadas por nome
+    List<Pizza> findByDisponivelTrue(Sort sort);
+
+    // O Spring Data MongoDB já fornece findAll(Sort sort)
+    // findAll() já é fornecido
 }

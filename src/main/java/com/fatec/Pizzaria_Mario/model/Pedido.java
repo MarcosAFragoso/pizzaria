@@ -4,9 +4,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+// import org.springframework.data.mongodb.core.mapping.Field; // REMOVIDO IMPORT NÃO USADO
 
 import java.math.BigDecimal;
-import java.math.RoundingMode; // IMPORT ADICIONADO
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,7 @@ public class Pedido {
 
     @Id
     private String id;
-
+    private Long numeroPedidoExibicao; 
     private String clienteId;
     private String clienteNome;
     private String clienteEmail;
@@ -46,17 +47,19 @@ public class Pedido {
         private List<String> acompanhamentosDoItem = new ArrayList<>();
 
         public ItemPedidoDetalhe(ItemPedido item) {
+            if (item == null) return; // Proteção contra item nulo
+
             this.nomeExibicao = item.getNomeExibicao();
             this.quantidade = item.getQuantidade();
-            if (item != null && item.getQuantidade() > 0 && item.getPrecoCalculado() != null) {
-                // DIVISÃO CORRIGIDA COM RoundingMode.HALF_UP
+            
+            if (item.getQuantidade() > 0 && item.getPrecoCalculado() != null) {
                 this.precoCalculadoItemUnico = item.getPrecoCalculado().divide(new BigDecimal(item.getQuantidade()), 2, RoundingMode.HALF_UP);
             } else {
-                this.precoCalculadoItemUnico = (item != null && item.getPrecoCalculado() != null) ? item.getPrecoCalculado() : BigDecimal.ZERO;
+                this.precoCalculadoItemUnico = item.getPrecoCalculado() != null ? item.getPrecoCalculado() : BigDecimal.ZERO;
             }
-            this.precoTotalItem = item != null ? item.getPrecoCalculado() : BigDecimal.ZERO; // Adicionado null check
-            this.observacoesItem = item != null ? item.getObservacoes() : null; // Adicionado null check
-            if (item != null && item.getAcompanhamentosSelecionados() != null) {
+            this.precoTotalItem = item.getPrecoCalculado() != null ? item.getPrecoCalculado() : BigDecimal.ZERO; 
+            this.observacoesItem = item.getObservacoes(); 
+            if (item.getAcompanhamentosSelecionados() != null) {
                 for (AcompanhamentoSelecionado as : item.getAcompanhamentosSelecionados()) {
                     if (as != null && as.getAcompanhamento() != null) {
                        this.acompanhamentosDoItem.add(as.getAcompanhamento().getNome() + " (x" + as.getQuantidadeAcompanhamento() + ")");
@@ -94,7 +97,7 @@ public class Pedido {
 
         if (itensDoCarrinho != null) {
             for (ItemPedido itemCarrinho : itensDoCarrinho) {
-                if (itemCarrinho != null) {
+                if (itemCarrinho != null) { // Adicionado null check para itemCarrinho
                     this.itens.add(new ItemPedidoDetalhe(itemCarrinho));
                 }
             }

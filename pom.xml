@@ -5,7 +5,10 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version> <!-- A versão do parent pode precisar ser estável como 3.2.x ou 3.3.x se encontrar problemas -->
+        <!-- SUGESTÃO: Usar uma versão LTS ou estável mais estabelecida se 3.4.5 for milestone -->
+        <!-- Exemplo: <version>3.2.5</version> ou <version>3.3.0</version> -->
+        <!-- Mantendo sua versão por enquanto, mas esteja ciente se houver problemas de compatibilidade -->
+        <version>3.4.5</version> 
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.fatec</groupId>
@@ -27,34 +30,41 @@
     </scm>
     <properties>
         <java.version>17</java.version>
+        <!-- Se você definir lombok.version aqui, a configuração no plugin está ok -->
+        <!-- Exemplo: <lombok.version>1.18.30</lombok.version> --> 
+        <!-- Se não definir, remova <version>${lombok.version}</version> do plugin abaixo -->
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>
-        </dependency>
+        <!-- Removido spring-boot-starter-data-mongodb-reactive se não estiver usando funcionalidades reativas com Mongo explicitamente -->
+        <!-- Se precisar, pode manter, mas spring-boot-starter-data-mongodb já é para o tradicional (blocking) -->
+        <!-- <dependency> -->
+        <!--     <groupId>org.springframework.boot</groupId> -->
+        <!--     <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId> -->
+        <!-- </dependency> -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
-        <!-- ADICIONADO: THYMELEAF LAYOUT DIALECT -->
         <dependency>
             <groupId>nz.net.ultraq.thymeleaf</groupId>
             <artifactId>thymeleaf-layout-dialect</artifactId>
-            <version>3.3.0</version>
+            <!-- A versão do parent do Spring Boot geralmente gerencia a versão do layout dialect, -->
+            <!-- mas especificar explicitamente como 3.3.0 é seguro se você souber que é compatível. -->
+            <!-- <version>3.3.0</version> --> 
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web-services</artifactId>
-        </dependency>
+        <!-- spring-boot-starter-web-services é para SOAP/WSDL. Remova se não estiver usando. -->
+        <!-- <dependency> -->
+        <!--     <groupId>org.springframework.boot</groupId> -->
+        <!--     <artifactId>spring-boot-starter-web-services</artifactId> -->
+        <!-- </dependency> -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
@@ -64,6 +74,10 @@
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -76,18 +90,19 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-test</artifactId>
-            <scope>test</scope>
+            <artifactId>spring-boot-starter-security</artifactId>    
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>    
-    </dependency>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- reactor-test é para testes reativos. Remova se não estiver usando reactive stack. -->
+        <!-- <dependency> -->
+        <!--     <groupId>io.projectreactor</groupId> -->
+        <!--     <artifactId>reactor-test</artifactId> -->
+        <!--     <scope>test</scope> -->
+        <!-- </dependency> -->
     </dependencies>
 
     <build>
@@ -95,12 +110,15 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <!-- A versão do plugin geralmente é gerenciada pelo parent -->
                 <configuration>
                     <annotationProcessorPaths>
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>                            
-                            <version>${lombok.version}</version> <!-- Certifique-se que lombok.version está definida em properties ou remova esta linha se o parent gerencia -->
+                            <!-- Se lombok.version NÃO estiver definida em <properties>, remova a linha abaixo -->
+                            <!-- ou deixe o Spring Boot Parent gerenciar a versão -->
+                             <version>${lombok.version}</version> 
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
@@ -109,8 +127,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <!-- ADICIONADO/MODIFICADO: MAIN CLASS -->
-                    <mainClass>com.fatec.Pizzaria_Mario.PizzariaMarioApplication</mainClass> <!-- CONFIRME ESTE NOME -->
+                    <mainClass>com.fatec.Pizzaria_Mario.PizzariaMarioApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

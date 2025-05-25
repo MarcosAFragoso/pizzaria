@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      layout:decorate="~{layout_pizzaria}"> <!-- Pode usar o layout principal ou um específico para admin -->
+      layout:decorate="~{layout_pizzaria}">
 <head>
     <title>Admin Dashboard - Pizzaria Mario</title>
 </head>
@@ -13,52 +13,58 @@
             <div class="col-12">
                 <h2 class="text-center titulo-pagina mb-4">Painel do Administrador</h2>
                 
-                <div th:if="${adminMessage}" class="alert alert-info" th:text="${adminMessage}"></div>
+                <div th:if="${adminMessage}" class="alert alert-info alert-dismissible fade show" role="alert">
+                    <span th:text="${adminMessage}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                <div th:if="${pedidosPendentesCount != null and pedidosPendentesCount != 'N/A' and pedidosPendentesCount > 0}" class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill"></i> Você tem <strong th:text="${pedidosPendentesCount}"></strong> pedidos que requerem atenção.
+                    <a th:href="@{/admin/pedidos}" class="alert-link ms-2">Ver agora</a>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                 <div th:if="${pedidosPendentesCount != null and pedidosPendentesCount == 0}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill"></i> Nenhum pedido pendente no momento!
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
 
-                <!-- Acesso Rápido / Seções Principais -->
+
                 <div class="row mt-4 g-3">
                     <div class="col-md-6 col-lg-4">
-                        <div class="card text-center h-100">
-                            <div class="card-body">
+                        <div class="card text-center h-100 shadow-sm">
+                            <div class="card-body d-flex flex-column">
                                 <i class="bi bi-receipt-cutoff" style="font-size: 3rem; color: var(--bs-primary);"></i>
-                                <h5 class="card-title mt-3">Gerenciar Pedidos</h5>
-                                <p class="card-text">Visualizar, filtrar e atualizar o status dos pedidos dos clientes.</p>
-                                <a href="#" class="btn btn-primary disabled">Ver Pedidos (Em Breve)</a>
-                                <!-- <a th:href="@{/admin/pedidos}" class="btn btn-primary">Ver Pedidos</a> -->
+                                <h5 class="card-title mt-3">Acompanhar Pedidos</h5>
+                                <p class="card-text flex-grow-1">Visualizar pedidos do dia, filtrar por data e atualizar status.</p>
+                                <a th:href="@{/admin/pedidos}" class="btn btn-primary mt-auto">Ver Pedidos</a>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-6 col-lg-4">
-                        <div class="card text-center h-100">
-                            <div class="card-body">
+                        <div class="card text-center h-100 shadow-sm">
+                            <div class="card-body d-flex flex-column">
                                 <i class="bi bi-fire" style="font-size: 3rem; color: var(--bs-danger);"></i>
-                                <h5 class="card-title mt-3">Controle da Cozinha</h5>
-                                <p class="card-text">Acompanhar o fluxo de preparação dos itens e liberar para entrega/serviço.</p>
-                                <a href="#" class="btn btn-danger disabled">Painel Cozinha (Em Breve)</a>
+                                <h5 class="card-title mt-3">Painel da Cozinha</h5>
+                                <p class="card-text flex-grow-1">Acompanhar o fluxo de preparação dos itens.</p>
+                                <a th:href="@{/admin/cozinha}" class="btn btn-danger mt-auto">Acessar Cozinha</a>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-md-6 col-lg-4">
-                        <div class="card text-center h-100">
-                            <div class="card-body">
+                        <div class="card text-center h-100 shadow-sm">
+                            <div class="card-body d-flex flex-column">
                                 <i class="bi bi-book-half" style="font-size: 3rem; color: var(--bs-success);"></i>
-                                <h5 class="card-title mt-3">Gerenciar Cardápio</h5>
-                                <p class="card-text">Adicionar, editar ou remover pizzas, acompanhamentos e bebidas.</p>
-                                <a href="#" class="btn btn-success disabled">Editar Cardápio (Em Breve)</a>
+                                <h5 class="card-title mt-3">Gerenciar Pizzas</h5>
+                                <p class="card-text flex-grow-1">Adicionar, editar ou remover pizzas do cardápio.</p>
+                                <a th:href="@{/admin/pizzas}" class="btn btn-success mt-auto">Editar Pizzas</a>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
-                        <div class="card text-center h-100">
-                            <div class="card-body">
-                                <i class="bi bi-grid-3x3-gap-fill" style="font-size: 3rem; color: var(--bs-warning);"></i>
-                                <h5 class="card-title mt-3">Controle de Mesas</h5>
-                                <p class="card-text">Gerenciar o status das mesas e pedidos para consumo no local.</p>
-                                <a th:href="@{/admin/pedidos}" class="btn btn-primary">Ver Pedidos</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Adicionar mais cards para outras funcionalidades do admin -->
+                    
+                    <!-- Futuramente: Card para Gerenciar Acompanhamentos -->
+                    <!-- Futuramente: Card para Gerenciar Bebidas -->
+
                 </div>
             </div>
         </div>

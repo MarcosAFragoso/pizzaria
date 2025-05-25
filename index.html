@@ -1,24 +1,35 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{layout_pizzaria}">
+<!-- Removido xmlns:th, xmlns:layout e layout:decorate pois não são processados estaticamente -->
+<html>
 <head>
-    <title>Bem-vindo</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo - Pizzaria Mario</title>
+    
+    <!-- Links para Bootstrap e CSS customizado -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Assumindo que pizzaria_style.css está em PIZZARIA_MARIO/css/pizzaria_style.css -->
+    <link rel="stylesheet" href="css/pizzaria_style.css"> 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>
-    <div layout:fragment="content">
+    <!-- O conteúdo que estava em layout:fragment="content" vai aqui diretamente -->
+    <div>
         <!-- Seção Principal (Hero) -->
-        <section class="hero-section text-center"> <!-- Classe 'text-center' do Bootstrap para centralizar conteúdo -->
-            <div class="container"> <!-- Container para limitar a largura e centralizar -->
+        <section class="hero-section text-center">
+            <div class="container">
                 <div class="row justify-content-center">
-                    <div class="col-lg-8 col-xl-7"> <!-- Coluna para controlar a largura do conteúdo do hero -->
-                        <img th:src="@{/images/logo_pizzaria.png}" class="d-block mx-auto mb-4" alt="Logo Pizzaria" style="width: 150px; border-radius: 50%;">
+                    <div class="col-lg-8 col-xl-7">
+                        <!-- Caminho da imagem corrigido para relativo -->
+                        <img src="images/logo_pizzaria.png" class="d-block mx-auto mb-4" alt="Logo Pizzaria" style="width: 150px; border-radius: 50%;">
                         
-                        <h1 class="display-5 fw-bold">Pizzaria do Mario</h1> <!-- Removido style inline, será pego pelo CSS -->
-                        <p class="lead mb-4">As melhores pizzas da cidade, feitas com ingredientes frescos e muito carinho. Faça seu pedido online agora mesmo!</p> <!-- Removido style inline -->
+                        <h1 class="display-5 fw-bold">Pizzaria do Mario</h1>
+                        <p class="lead mb-4">As melhores pizzas da cidade, feitas com ingredientes frescos e muito carinho. Faça seu pedido online agora mesmo!</p>
                         <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                            <a th:href="@{/cardapio}" role="button" class="btn btn-primary btn-lg px-4 gap-3">Ver Cardápio</a>
-                            <a th:href="@{/login}" role="button" class="btn btn-outline-light btn-lg px-4">Fazer Login</a>
+                            <!-- Link para cardapio.html (assumindo que está na raiz) -->
+                            <a href="cardapio.html" role="button" class="btn btn-primary btn-lg px-4 gap-3">Ver Cardápio</a>
+                            <!-- Link para login.html (assumindo que está na raiz) -->
+                            <a href="login.html" role="button" class="btn btn-outline-light btn-lg px-4">Fazer Login</a>
                         </div>
                     </div>
                 </div>
@@ -26,18 +37,18 @@
         </section>
 
         <!-- Seção de Destaques -->
-        <section class="destaques-section page-section"> <!-- Adicionada classe page-section para espaçamento vertical padrão -->
+        <section class="destaques-section page-section">
             <div class="container">
-                <!-- Você pode adicionar um título para a seção de destaques se quiser -->
-                <!-- <h2 class="text-center titulo-pagina mb-5">Destaques da Semana</h2> -->
-                <div class="row justify-content-center"> <!-- Centraliza a(s) coluna(s) dos cards -->
-                    <div class="col-md-6 col-lg-4"> <!-- Coluna para o card -->
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4">
                         <div class="card card-pizza shadow-sm h-100">
-                            <img th:src="@{/images/pizzas/calabresa.jpg}" class="card-img-top" alt="Pizza Calabresa Especial">
+                            <!-- Caminho da imagem corrigido para relativo -->
+                            <img src="images/pizzas/calabresa.jpg" class="card-img-top" alt="Pizza Calabresa Especial">
                             <div class="card-body">
                                 <h5 class="card-title">Pizza Calabresa Especial</h5>
                                 <p class="card-text descricao-pizza">Nossa calabresa premium com cebola roxa e azeitonas selecionadas.</p>
-                                <a th:href="@{/cardapio}" class="btn btn-warning w-100">Pedir Agora</a>
+                                <!-- Link para cardapio.html (assumindo que está na raiz) -->
+                                <a href="cardapio.html" class="btn btn-warning w-100">Pedir Agora</a>
                             </div>
                         </div>
                     </div>
@@ -46,5 +57,10 @@
             </div>
         </section>
     </div>
+
+    <!-- Scripts JavaScript (Bootstrap e customizado) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Assumindo que pizzaria_script.js está em PIZZARIA_MARIO/js/pizzaria_script.js -->
+    <script src="js/pizzaria_script.js"></script> 
 </body>
 </html>

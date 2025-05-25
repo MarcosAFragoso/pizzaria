@@ -5,23 +5,22 @@ import com.fatec.Pizzaria_Mario.repository.AcompanhamentoRepository;
 import com.fatec.Pizzaria_Mario.repository.PedidoRepository;
 import com.fatec.Pizzaria_Mario.repository.PizzaRepository;
 import com.fatec.Pizzaria_Mario.service.AuthService;
+import com.fatec.Pizzaria_Mario.service.ContadorService;
 import com.fatec.Pizzaria_Mario.service.EmailService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort; // <<< ADICIONADO IMPORT
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UsernameNotFoundException; // Necessário para o orElseThrow
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,23 +32,25 @@ public class PedidoController {
     @Autowired
     private AcompanhamentoRepository acompanhamentoRepository;
     @Autowired
-    private Carrinho carrinho; // Bean de sessão para o carrinho
+    private Carrinho carrinho;
     @Autowired
-    private AuthService authService; // Para obter informações do usuário logado
+    private AuthService authService;
     @Autowired
-    private PedidoRepository pedidoRepository; // Para salvar e buscar pedidos
-    @Autowired(required = false) // Torna opcional caso não esteja configurado
+    private PedidoRepository pedidoRepository;
+    @Autowired(required = false)
     private EmailService emailService;
+    @Autowired
+    private ContadorService contadorService;
 
     @GetMapping("/pedido/montar/{pizzaId}")
     public String montarPizza(@PathVariable("pizzaId") String pizzaId, Model model, HttpSession session) {
-        session.removeAttribute("itemPedidoAtual"); // Limpa item anterior da sessão
+        session.removeAttribute("itemPedidoAtual");
         Optional<Pizza> pizzaOpt = pizzaRepository.findById(pizzaId);
         if (pizzaOpt.isEmpty()) {
             model.addAttribute("errorMessage", "Pizza não encontrada.");
             return "redirect:/cardapio?error=PizzaNaoEncontrada";
         }
-        List<Pizza> todasAsPizzas = pizzaRepository.findByDisponivelTrue();
+        List<Pizza> todasAsPizzas = pizzaRepository.findByDisponivelTrue(Sort.by(Sort.Direction.ASC, "nome")); // Uso de Sort
         model.addAttribute("pizzaPrincipal", pizzaOpt.get());
         model.addAttribute("todasAsPizzas", todasAsPizzas);
         return "montar-pizza";
@@ -61,9 +62,7 @@ public class PedidoController {
                                         @RequestParam("tipoEscolha") String tipoEscolha,
                                         @RequestParam(value = "quantidade", defaultValue = "1") int quantidade,
                                         @RequestParam(value = "observacoes", required = false) String observacoes,
-                                        HttpSession session, RedirectAttributes redirectAttributes) { // Removido Model model não usado
-        System.out.println("--- DEBUG: Entrando em /carrinho/adicionar-pizza ---");
-        // ... (código de debug como antes) ...
+                                        HttpSession session, RedirectAttributes redirectAttributes) {
         try {
             Optional<Pizza> pizza1Opt = pizzaRepository.findById(pizza1Id);
             if (pizza1Opt.isEmpty()) {
@@ -100,7 +99,7 @@ public class PedidoController {
             session.setAttribute("itemPedidoAtual", item);
             return "redirect:/pedido/acompanhamentos";
         } catch (Exception e) {
-            System.err.println("--- ERRO em /carrinho/adicionar-pizza ---");
+            System.err.println("ERRO em /carrinho/adicionar-pizza: " + e.getMessage());
             e.printStackTrace();
             redirectAttributes.addFlashAttribute("errorMessage", "Ocorreu um erro inesperado ao adicionar a pizza.");
             if (StringUtils.hasText(pizza1Id)) {
@@ -182,7 +181,7 @@ public class PedidoController {
         Acompanhamento bebida = bebidaOpt.get();
         ItemPedido itemBebida = new ItemPedido();
         itemBebida.setTipo("BEBIDA");
-        itemBebida.setObservacoes(bebida.getNome());
+        itemBebida.setNomeExibicao(bebida.getNome());
         itemBebida.setQuantidade(quantidade);
         itemBebida.setPrecoCalculado(bebida.getPreco().multiply(new BigDecimal(quantidade)));
         carrinho.adicionarItem(itemBebida);
@@ -226,8 +225,8 @@ public class PedidoController {
             @RequestParam(value="endereco.bairro", required = false) String bairro,
             @RequestParam(value="endereco.cidade", required = false) String cidade,
             @RequestParam(value="endereco.estado", required = false) String estado,
-            @RequestParam("contato_telefone") String clienteTelefone,
-            @RequestParam("formaPagamento") String formaPagamento,
+            @RequestParam(value = "contato_telefone", required = false) String clienteTelefone,
+            @RequestParam(name = "formaPagamento", required = false) String formaPagamento,
             @RequestParam(value = "trocoPara", required = false) String trocoParaStr,
             @RequestParam(value = "salvarEnderecoPerfil", required = false) boolean salvarEndereco,
             @RequestParam("tipoPedido") String tipoPedido,
@@ -242,44 +241,66 @@ public class PedidoController {
             redirectAttributes.addFlashAttribute("errorMessage", "Seu carrinho está vazio.");
             return "redirect:/cardapio";
         }
+
         Endereco enderecoEntrega = null;
+        String formaPagamentoFinal = formaPagamento;
+
         if ("ENTREGA".equals(tipoPedido)) {
-            if ( !StringUtils.hasText(cep) || !StringUtils.hasText(rua) ||
-                 !StringUtils.hasText(numero) || !StringUtils.hasText(bairro) ||
-                 !StringUtils.hasText(cidade) || !StringUtils.hasText(estado) ||
-                 !StringUtils.hasText(clienteTelefone) ) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Para entrega, preencha todo o endereço e telefone.");
+            if (!StringUtils.hasText(cep) || !StringUtils.hasText(rua) ||
+                !StringUtils.hasText(numero) || !StringUtils.hasText(bairro) ||
+                !StringUtils.hasText(cidade) || !StringUtils.hasText(estado) ||
+                !StringUtils.hasText(clienteTelefone) || !StringUtils.hasText(formaPagamentoFinal) ) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Para entrega, preencha todo o endereço, telefone e forma de pagamento.");
                 return "redirect:/checkout";
             }
             enderecoEntrega = new Endereco(cep, rua, numero, complemento, bairro, cidade, estado);
         } else if ("LOCAL".equals(tipoPedido)) {
-            // Validações para local
+            formaPagamentoFinal = null; 
+            if (numeroMesa == null || numeroMesa <= 0) {
+                 redirectAttributes.addFlashAttribute("errorMessage", "Para consumo no local, por favor, informe o número da mesa.");
+                 return "redirect:/checkout";
+            }
+            if (!StringUtils.hasText(nomeClienteLocal) && (authentication == null || !authentication.isAuthenticated())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Para consumo no local sem login, informe um nome para identificação na mesa.");
+                return "redirect:/checkout";
+            }
         } else {
             redirectAttributes.addFlashAttribute("errorMessage", "Tipo de pedido inválido.");
             return "redirect:/checkout";
         }
 
-        String clienteNome = "Cliente"; String clienteEmail = ""; String clienteId = null; User usuarioLogado = null;
+        String clienteNome = "Cliente Anônimo";
+        String clienteEmail = "";
+        String clienteId = null;
+
         if (authentication != null && authentication.isAuthenticated() && !"anonymousUser".equals(authentication.getPrincipal().toString())) {
             String userEmailAutenticado = authentication.getName();
             Optional<User> userOpt = authService.findByEmail(userEmailAutenticado);
             if (userOpt.isPresent()) {
-                usuarioLogado = userOpt.get();
-                clienteNome = usuarioLogado.getNomeCompleto(); clienteEmail = usuarioLogado.getEmail(); clienteId = usuarioLogado.getId();
-                if (!StringUtils.hasText(clienteTelefone) && StringUtils.hasText(usuarioLogado.getTelefone())) {
-                    clienteTelefone = usuarioLogado.getTelefone();
-                }
-                if (salvarEndereco && "ENTREGA".equals(tipoPedido) && enderecoEntrega != null && !enderecoEntrega.isVazio()) {
-                    try { authService.atualizarEnderecoEtelefoneUsuario(userEmailAutenticado, enderecoEntrega, clienteTelefone);
-                    } catch (Exception e) { System.err.println("Erro ao salvar endereço no perfil: " + e.getMessage());}
+                User usuarioLogado = userOpt.get();
+                clienteNome = usuarioLogado.getNomeCompleto();
+                clienteEmail = usuarioLogado.getEmail();
+                clienteId = usuarioLogado.getId();
+                if ("ENTREGA".equals(tipoPedido)) {
+                    if (!StringUtils.hasText(clienteTelefone) && StringUtils.hasText(usuarioLogado.getTelefone())) {
+                        clienteTelefone = usuarioLogado.getTelefone();
+                    }
+                    if (salvarEndereco && enderecoEntrega != null && !enderecoEntrega.isVazio()) {
+                        try {
+                            authService.atualizarEnderecoEtelefoneUsuario(userEmailAutenticado, enderecoEntrega, clienteTelefone);
+                        } catch (Exception e) {
+                            System.err.println("Erro ao salvar endereço no perfil: " + e.getMessage());
+                        }
+                    }
                 }
             }
         } else if ("LOCAL".equals(tipoPedido) && StringUtils.hasText(nomeClienteLocal)) {
             clienteNome = nomeClienteLocal;
         }
 
+
         String observacoesPagamento = "";
-        if (formaPagamento.startsWith("DINHEIRO") && StringUtils.hasText(trocoParaStr)) {
+        if ("ENTREGA".equals(tipoPedido) && formaPagamentoFinal != null && formaPagamentoFinal.startsWith("DINHEIRO") && StringUtils.hasText(trocoParaStr)) {
             try {
                 BigDecimal trocoValor = new BigDecimal(trocoParaStr);
                  if (trocoValor.compareTo(BigDecimal.ZERO) > 0 && trocoValor.compareTo(carrinho.getTotal()) < 0) {
@@ -287,31 +308,47 @@ public class PedidoController {
                      return "redirect:/checkout";
                 }
                 observacoesPagamento = "Troco para R$ " + String.format("%.2f", trocoValor);
-            } catch (NumberFormatException e) { /* ignorar ou tratar */ }
+            } catch (NumberFormatException e) {
+                System.err.println("Valor de troco inválido: " + trocoParaStr);
+            }
         }
 
         String statusInicial = "RECEBIDO";
-        if ("LOCAL".equals(tipoPedido)) statusInicial = "AGUARDANDO_PREPARO_MESA";
+        if ("LOCAL".equals(tipoPedido)) {
+            statusInicial = "AGUARDANDO_PREPARO_MESA";
+        }
 
         Pedido novoPedido = new Pedido(
                 clienteNome, clienteEmail, clienteTelefone,
                 enderecoEntrega, carrinho.getItens(), carrinho.getTotal(),
-                formaPagamento, observacoesPagamento,
+                formaPagamentoFinal, observacoesPagamento,
                 tipoPedido, numeroMesa, numeroPessoas );
         novoPedido.setStatus(statusInicial);
-        if (clienteId != null) novoPedido.setClienteId(clienteId);
+        if (clienteId != null) {
+            novoPedido.setClienteId(clienteId);
+        }
+
+        Long proximoNumeroExibicao = contadorService.getProximoNumeroPedido();
+        novoPedido.setNumeroPedidoExibicao(proximoNumeroExibicao);
 
         try {
             Pedido pedidoSalvo = pedidoRepository.save(novoPedido);
             carrinho.limparCarrinho();
+            session.removeAttribute("itemPedidoAtual"); 
+
             if (emailService != null && StringUtils.hasText(clienteEmail)) {
-                try { System.out.println("SIMULAÇÃO: E-mail de confirmação enviado para " + clienteEmail);
-                } catch (Exception e) { System.err.println("Falha ao tentar enviar e-mail: " + e.getMessage());}
+                try {
+                    System.out.println("SIMULAÇÃO: E-mail de confirmação enviado para " + clienteEmail + " para o pedido #" + pedidoSalvo.getNumeroPedidoExibicao());
+                } catch (Exception e) {
+                    System.err.println("Falha ao tentar enviar e-mail: " + e.getMessage());
+                }
             }
-            redirectAttributes.addFlashAttribute("successMessage", "Seu pedido (" + tipoPedido.toLowerCase().replace('_', ' ') + ") nº " + pedidoSalvo.getId() + " foi recebido!");
+            redirectAttributes.addFlashAttribute("successMessage", "Seu pedido (" + tipoPedido.toLowerCase().replace('_', ' ') + ") nº " + pedidoSalvo.getNumeroPedidoExibicao() + " foi recebido!");
             return "redirect:/pedido/confirmado?pedidoId=" + pedidoSalvo.getId();
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Erro ao processar pedido.");
+            System.err.println("Erro ao processar pedido: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Erro ao processar pedido. Tente novamente.");
             return "redirect:/checkout";
         }
     }
@@ -320,16 +357,16 @@ public class PedidoController {
     public String pedidoConfirmado(@RequestParam("pedidoId") String pedidoId, Model model, RedirectAttributes redirectAttributes) {
         Optional<Pedido> pedidoOpt = pedidoRepository.findById(pedidoId);
         if (pedidoOpt.isPresent()){
-            model.addAttribute("pedidoConfirmado", pedidoOpt.get());
+            Pedido pedidoConfirmado = pedidoOpt.get();
+            model.addAttribute("pedidoConfirmado", pedidoConfirmado);
+            model.addAttribute("numeroPedidoExibicao", pedidoConfirmado.getNumeroPedidoExibicao());
         } else {
-            redirectAttributes.addFlashAttribute("errorMessage", "Pedido não encontrado.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Pedido com ID " + pedidoId + " não encontrado.");
             return "redirect:/";
         }
-        model.addAttribute("numeroPedido", pedidoId);
         return "pedido-confirmado";
     }
 
-    // --- NOVO MÉTODO PARA "MEUS PEDIDOS" ---
     @GetMapping("/meus-pedidos")
     public String mostrarMeusPedidos(Model model, Authentication authentication, RedirectAttributes redirectAttributes) {
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal().toString())) {
