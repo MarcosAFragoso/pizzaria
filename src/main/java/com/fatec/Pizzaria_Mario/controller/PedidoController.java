@@ -9,7 +9,7 @@ import com.fatec.Pizzaria_Mario.service.ContadorService;
 import com.fatec.Pizzaria_Mario.service.EmailService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort; // <<< ADICIONADO IMPORT
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +21,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.math.BigDecimal;
+import java.util.ArrayList; // Certifique-se que este import está presente
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,7 +52,7 @@ public class PedidoController {
             model.addAttribute("errorMessage", "Pizza não encontrada.");
             return "redirect:/cardapio?error=PizzaNaoEncontrada";
         }
-        List<Pizza> todasAsPizzas = pizzaRepository.findByDisponivelTrue(Sort.by(Sort.Direction.ASC, "nome")); // Uso de Sort
+        List<Pizza> todasAsPizzas = pizzaRepository.findByDisponivelTrue(Sort.by(Sort.Direction.ASC, "nome"));
         model.addAttribute("pizzaPrincipal", pizzaOpt.get());
         model.addAttribute("todasAsPizzas", todasAsPizzas);
         return "montar-pizza";
@@ -136,12 +138,20 @@ public class PedidoController {
         if (itemObj instanceof ItemPedido) {
             itemPedidoAtual = (ItemPedido) itemObj;
         }
+
         if (itemPedidoAtual == null) {
             redirectAttributes.addFlashAttribute("errorMessage", "Sua sessão expirou ou a pizza não foi montada corretamente.");
             return "redirect:/cardapio";
         }
-        itemPedidoAtual.getAcompanhamentosSelecionados().clear();
-        if (acompanhamentoIds != null && !acompanhamentoIds.isEmpty()) {
+
+        if (itemPedidoAtual.getAcompanhamentosSelecionados() != null) {
+            itemPedidoAtual.getAcompanhamentosSelecionados().clear(); 
+        } else {
+            itemPedidoAtual.setAcompanhamentosSelecionados(new ArrayList<>());
+        }
+
+        // CORREÇÃO APLICADA AQUI:
+        if (acompanhamentoIds != null && !acompanhamentoIds.isEmpty()) { 
             for (String acompanhamentoId : acompanhamentoIds) {
                 Optional<Acompanhamento> acompanhamentoOpt = acompanhamentoRepository.findById(acompanhamentoId);
                 if (acompanhamentoOpt.isPresent()) {
@@ -150,19 +160,24 @@ public class PedidoController {
                 }
             }
         }
+        
         itemPedidoAtual.recalcularPrecoTotalItem();
-        carrinho.adicionarItem(itemPedidoAtual);
-        session.removeAttribute("itemPedidoAtual");
+        carrinho.adicionarItem(itemPedidoAtual);    
+        session.removeAttribute("itemPedidoAtual"); 
+
         redirectAttributes.addFlashAttribute("successMessage", "'" + itemPedidoAtual.getNomeExibicao() + "' com acompanhamentos foi adicionado ao carrinho!");
-        return "redirect:/pedido/bebidas";
+        return "redirect:/pedido/bebidas"; 
     }
 
     @GetMapping("/pedido/bebidas")
     public String mostrarBebidas(Model model) {
         List<Acompanhamento> refrigerantes = acompanhamentoRepository.findByTipoAndDisponivelTrue("BEBIDA_REFRIGERANTE");
         List<Acompanhamento> vinhos = acompanhamentoRepository.findByTipoAndDisponivelTrue("BEBIDA_VINHO");
+        List<Acompanhamento> outrasBebidas = acompanhamentoRepository.findByTipoAndDisponivelTrue("BEBIDA_OUTRA");
+
         model.addAttribute("refrigerantes", refrigerantes);
         model.addAttribute("vinhos", vinhos);
+        model.addAttribute("outrasBebidas", outrasBebidas);
         model.addAttribute("carrinho", carrinho);
         return "bebidas";
     }
@@ -172,19 +187,21 @@ public class PedidoController {
                                             @RequestParam(value = "quantidade", defaultValue = "1") int quantidade,
                                             RedirectAttributes redirectAttributes) {
         Optional<Acompanhamento> bebidaOpt = acompanhamentoRepository.findById(bebidaId);
-        if (bebidaOpt.isEmpty() ||
-            !( "BEBIDA_REFRIGERANTE".equals(bebidaOpt.get().getTipo()) ||
-               "BEBIDA_VINHO".equals(bebidaOpt.get().getTipo()) )) {
+        
+        if (bebidaOpt.isEmpty() || bebidaOpt.get().getTipo() == null || !bebidaOpt.get().getTipo().startsWith("BEBIDA_")) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bebida não encontrada ou inválida!");
             return "redirect:/pedido/bebidas";
         }
+
         Acompanhamento bebida = bebidaOpt.get();
         ItemPedido itemBebida = new ItemPedido();
-        itemBebida.setTipo("BEBIDA");
+        itemBebida.setTipo("BEBIDA"); 
         itemBebida.setNomeExibicao(bebida.getNome());
-        itemBebida.setQuantidade(quantidade);
-        itemBebida.setPrecoCalculado(bebida.getPreco().multiply(new BigDecimal(quantidade)));
+        itemBebida.setQuantidade(Math.max(1, quantidade)); 
+        itemBebida.setPrecoCalculado(bebida.getPreco().multiply(new BigDecimal(itemBebida.getQuantidade())));
+        
         carrinho.adicionarItem(itemBebida);
+        System.out.println("ItemPedido (Bebida) adicionado ao Carrinho (controller): " + itemBebida.getNomeExibicao());
         redirectAttributes.addFlashAttribute("successMessage", bebida.getNome() + " adicionado ao carrinho!");
         return "redirect:/pedido/bebidas";
     }
@@ -297,7 +314,6 @@ public class PedidoController {
         } else if ("LOCAL".equals(tipoPedido) && StringUtils.hasText(nomeClienteLocal)) {
             clienteNome = nomeClienteLocal;
         }
-
 
         String observacoesPagamento = "";
         if ("ENTREGA".equals(tipoPedido) && formaPagamentoFinal != null && formaPagamentoFinal.startsWith("DINHEIRO") && StringUtils.hasText(trocoParaStr)) {

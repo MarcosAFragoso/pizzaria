@@ -51,14 +51,17 @@ public class AdminController {
             "PRONTO_NA_MESA", "PRONTO_PARA_ENTREGA",
             "SAIU_PARA_ENTREGA", "PAGO_MESA", "ENTREGUE", "CANCELADO"
     );
+    
     private static final List<String> STATUS_COZINHA_ATIVOS = Arrays.asList(
             "RECEBIDO", "AGUARDANDO_PREPARO_MESA", "EM_PREPARO"
     );
+
     private static final List<String> TODOS_STATUS_POSSIVEIS = Arrays.asList(
             "RECEBIDO", "AGUARDANDO_PREPARO_MESA", "EM_PREPARO", 
             "PRONTO_NA_MESA", "PRONTO_PARA_ENTREGA", 
             "SAIU_PARA_ENTREGA", "ENTREGUE", "PAGO_MESA", "CANCELADO"
     );
+    
     private static final List<String> TIPOS_ACOMPANHAMENTO = Arrays.asList(
         "ADICIONAL_PIZZA", "PORCAO", "BEBIDA_REFRIGERANTE", "BEBIDA_VINHO", "BEBIDA_OUTRA", "SOBREMESA" 
     );
@@ -118,6 +121,7 @@ public class AdminController {
                               @RequestParam(name = "ingredientesStr", required = false) String ingredientesStr,
                               Model model,
                               RedirectAttributes redirectAttributes) {
+        
         System.out.println("--- INICIO SALVAR PIZZA ---");
         System.out.println("ID da Pizza recebido do formulário: [" + pizza.getId() + "]");
         System.out.println("Nome da Pizza: " + pizza.getNome());
@@ -126,19 +130,23 @@ public class AdminController {
             System.out.println("ID da Pizza era uma string vazia, setando para null para geração automática.");
             pizza.setId(null);
         }
+        
         if (bindingResult.hasErrors()) {
-            System.out.println("Erro de binding encontrado: " + bindingResult.getAllErrors());
+            System.out.println("Erro de binding encontrado em Pizza: " + bindingResult.getAllErrors());
             model.addAttribute("tituloForm", pizza.getId() == null ? "Adicionar Nova Pizza" : "Editar Pizza: " + pizza.getNome());
             model.addAttribute("acaoForm", "/admin/pizzas/salvar");
             model.addAttribute("ingredientesStr", ingredientesStr);
             return "admin/admin-form-pizza";
         }
+
         if (StringUtils.hasText(ingredientesStr)) {
             pizza.setIngredientes(Arrays.asList(ingredientesStr.trim().split("\\s*,\\s*")));
         } else {
             pizza.setIngredientes(new ArrayList<>());
         }
+
         System.out.println("Pizza antes de salvar: ID=[" + pizza.getId() + "], Nome=[" + pizza.getNome() + "]");
+
         try {
             Pizza pizzaSalva = pizzaRepository.save(pizza);
             System.out.println("Pizza salva com sucesso! ID gerado/usado: [" + pizzaSalva.getId() + "]");
@@ -177,7 +185,6 @@ public class AdminController {
     // --- MÉTODOS PARA GERENCIAMENTO DE ACOMPANHAMENTOS ---
     @GetMapping("/acompanhamentos")
     public String listarAcompanhamentos(Model model) {
-        // Busca todos e ordena por tipo, depois por nome
         List<Acompanhamento> todosOsAcompanhamentos = acompanhamentoRepository.findAll(Sort.by(Sort.Direction.ASC, "tipo").and(Sort.by(Sort.Direction.ASC, "nome")));
         
         System.out.println("--- AdminController: listarAcompanhamentos ---");
@@ -283,10 +290,7 @@ public class AdminController {
         return "redirect:/admin/acompanhamentos";
     }
     
-    // --- MÉTODOS DE GERENCIAMENTO DE PEDIDOS (EXISTENTES) ---
-    // Mantenha os métodos de gerenciamento de pedidos como estavam na última versão completa.
-    // (listarPedidos, painelCozinha, detalhesPedido, atualizarStatusPedido, registrarPagamentoLocal)
-    // Por brevidade, não vou repetir todos eles aqui.
+    // --- MÉTODOS DE GERENCIAMENTO DE PEDIDOS ---
     @GetMapping("/pedidos")
     public String listarPedidos(
             @RequestParam(name = "dataSelecionada", required = false) 
@@ -464,5 +468,4 @@ public class AdminController {
         
         return "redirect:/admin/pedidos/detalhes/" + pedidoId;
     }
-
 }
