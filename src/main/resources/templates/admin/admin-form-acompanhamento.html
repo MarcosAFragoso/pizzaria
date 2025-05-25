@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout_pizzaria}">
+<head>
+    <title th:text="${tituloForm} + ' - Admin'">Formulário de Acompanhamento</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container page-section">
+        <div class="row justify-content-center">
+            <div class="col-md-9 col-lg-8 col-xl-7">
+                <div class="card shadow-lg">
+                    <div class="card-header">
+                        <h3 th:text="${tituloForm}">Adicionar/Editar Acompanhamento</h3>
+                    </div>
+                    <div class="card-body p-4 p-md-5">
+                        <form th:action="@{${acaoForm}}" th:object="${acompanhamento}" method="post" novalidate>
+                            <input type="hidden" th:field="*{id}" />
+
+                            <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <strong>Erro!</strong>
+                                <ul><li th:each="err : ${#fields.globalErrors()}" th:text="${err}"></li></ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                             <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                                <span th:text="${errorMessage}"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="nome" class="form-label">Nome <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nome" th:field="*{nome}" placeholder="Ex: Porção de Batata Frita" required
+                                       th:classappend="${#fields.hasErrors('nome')} ? 'is-invalid' : ''">
+                                <div th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}" class="invalid-feedback"></div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="descricao" class="form-label">Descrição</label>
+                                <textarea class="form-control" id="descricao" th:field="*{descricao}" placeholder="Descreva brevemente o item" style="height: 80px"
+                                          th:classappend="${#fields.hasErrors('descricao')} ? 'is-invalid' : ''"></textarea>
+                                <div th:if="${#fields.hasErrors('descricao')}" th:errors="*{descricao}" class="invalid-feedback"></div>
+                            </div>
+                            
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label for="preco" class="form-label">Preço (R$) <span class="text-danger">*</span></label>
+                                    <input type="number" step="0.01" min="0.01" class="form-control" id="preco" th:field="*{preco}" placeholder="Ex: 15.00" required
+                                           th:classappend="${#fields.hasErrors('preco')} ? 'is-invalid' : ''">
+                                    <div th:if="${#fields.hasErrors('preco')}" th:errors="*{preco}" class="invalid-feedback"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="tipo" class="form-label">Tipo <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="tipo" th:field="*{tipo}" required
+                                            th:classappend="${#fields.hasErrors('tipo')} ? 'is-invalid' : ''">
+                                        <option value="" disabled>Selecione o tipo...</option>
+                                        <option th:each="tipoOpt : ${todosTiposAcompanhamento}" 
+                                                th:value="${tipoOpt}" 
+                                                th:text="${#strings.replace(tipoOpt, '_', ' ')}"></option>
+                                    </select>
+                                    <div th:if="${#fields.hasErrors('tipo')}" th:errors="*{tipo}" class="invalid-feedback"></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="imagemUrl" class="form-label">Caminho da Imagem (opcional)</label>
+                                <input type="text" class="form-control" id="imagemUrl" th:field="*{imagemUrl}" placeholder="/images/acompanhamentos/item.jpg">
+                                <small class="form-text text-muted">Ex: /images/bebidas/coca_lata.png</small>
+                            </div>
+
+                            <div class="form-check form-switch mb-4">
+                                <input class="form-check-input" type="checkbox" role="switch" id="disponivel" th:field="*{disponivel}">
+                                <label class="form-check-label" for="disponivel">
+                                    Disponível no cardápio?
+                                </label>
+                            </div>
+
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                                <a th:href="@{/admin/acompanhamentos}" class="btn btn-outline-secondary">Cancelar</a>
+                                <button type="submit" class="btn btn-primary"><i class="bi bi-save-fill"></i> Salvar Item</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

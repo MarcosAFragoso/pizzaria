@@ -1,19 +1,21 @@
 package com.fatec.Pizzaria_Mario.controller;
 
+import com.fatec.Pizzaria_Mario.model.Acompanhamento;
 import com.fatec.Pizzaria_Mario.model.Pedido;
-import com.fatec.Pizzaria_Mario.model.Pizza; // IMPORT ADICIONADO
+import com.fatec.Pizzaria_Mario.model.Pizza;
+import com.fatec.Pizzaria_Mario.repository.AcompanhamentoRepository;
 import com.fatec.Pizzaria_Mario.repository.PedidoRepository;
-import com.fatec.Pizzaria_Mario.repository.PizzaRepository; // IMPORT ADICIONADO
-import jakarta.validation.Valid; // IMPORT ADICIONADO
+import com.fatec.Pizzaria_Mario.repository.PizzaRepository;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
-import org.springframework.validation.BindingResult; // IMPORT ADICIONADO
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute; // IMPORT ADICIONADO
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,7 +26,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList; // IMPORT ADICIONADO
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -38,10 +40,12 @@ public class AdminController {
     @Autowired
     private PedidoRepository pedidoRepository;
 
-    @Autowired // INJEÇÃO DO PIZZA REPOSITORY
+    @Autowired
     private PizzaRepository pizzaRepository;
 
-    // Constantes de Status (como estavam antes)
+    @Autowired 
+    private AcompanhamentoRepository acompanhamentoRepository;
+
     private static final List<String> ORDEM_STATUS_FLUXO = Arrays.asList(
             "RECEBIDO", "AGUARDANDO_PREPARO_MESA", "EM_PREPARO",
             "PRONTO_NA_MESA", "PRONTO_PARA_ENTREGA",
@@ -54,6 +58,9 @@ public class AdminController {
             "RECEBIDO", "AGUARDANDO_PREPARO_MESA", "EM_PREPARO", 
             "PRONTO_NA_MESA", "PRONTO_PARA_ENTREGA", 
             "SAIU_PARA_ENTREGA", "ENTREGUE", "PAGO_MESA", "CANCELADO"
+    );
+    private static final List<String> TIPOS_ACOMPANHAMENTO = Arrays.asList(
+        "ADICIONAL_PIZZA", "PORCAO", "BEBIDA_REFRIGERANTE", "BEBIDA_VINHO", "BEBIDA_OUTRA", "SOBREMESA" 
     );
 
     @GetMapping("/dashboard")
@@ -82,11 +89,11 @@ public class AdminController {
     @GetMapping("/pizzas/nova")
     public String mostrarFormNovaPizza(Model model) {
         Pizza novaPizza = new Pizza();
-        novaPizza.setDisponivel(true); // Padrão para nova pizza
+        novaPizza.setDisponivel(true);
         model.addAttribute("pizza", novaPizza);
         model.addAttribute("tituloForm", "Adicionar Nova Pizza");
         model.addAttribute("acaoForm", "/admin/pizzas/salvar");
-        model.addAttribute("ingredientesStr", ""); // Para o campo de texto
+        model.addAttribute("ingredientesStr", "");
         return "admin/admin-form-pizza";
     }
 
@@ -109,37 +116,42 @@ public class AdminController {
     public String salvarPizza(@Valid @ModelAttribute("pizza") Pizza pizza,
                               BindingResult bindingResult,
                               @RequestParam(name = "ingredientesStr", required = false) String ingredientesStr,
-                              Model model, // Adicionado Model para retornar ao form em caso de erro
+                              Model model,
                               RedirectAttributes redirectAttributes) {
-        
-        // Se houver erros de validação do @Valid nos campos da entidade Pizza
+        System.out.println("--- INICIO SALVAR PIZZA ---");
+        System.out.println("ID da Pizza recebido do formulário: [" + pizza.getId() + "]");
+        System.out.println("Nome da Pizza: " + pizza.getNome());
+
+        if (pizza.getId() != null && pizza.getId().trim().isEmpty()) {
+            System.out.println("ID da Pizza era uma string vazia, setando para null para geração automática.");
+            pizza.setId(null);
+        }
         if (bindingResult.hasErrors()) {
+            System.out.println("Erro de binding encontrado: " + bindingResult.getAllErrors());
             model.addAttribute("tituloForm", pizza.getId() == null ? "Adicionar Nova Pizza" : "Editar Pizza: " + pizza.getNome());
             model.addAttribute("acaoForm", "/admin/pizzas/salvar");
-            model.addAttribute("ingredientesStr", ingredientesStr); // Devolve a string de ingredientes para o formulário
-             // Os erros de bindingResult já são adicionados ao model automaticamente pelo Spring
+            model.addAttribute("ingredientesStr", ingredientesStr);
             return "admin/admin-form-pizza";
         }
-
         if (StringUtils.hasText(ingredientesStr)) {
             pizza.setIngredientes(Arrays.asList(ingredientesStr.trim().split("\\s*,\\s*")));
         } else {
             pizza.setIngredientes(new ArrayList<>());
         }
-
+        System.out.println("Pizza antes de salvar: ID=[" + pizza.getId() + "], Nome=[" + pizza.getNome() + "]");
         try {
-            pizzaRepository.save(pizza);
-            redirectAttributes.addFlashAttribute("successMessage", "Pizza '" + pizza.getNome() + "' salva com sucesso!");
+            Pizza pizzaSalva = pizzaRepository.save(pizza);
+            System.out.println("Pizza salva com sucesso! ID gerado/usado: [" + pizzaSalva.getId() + "]");
+            redirectAttributes.addFlashAttribute("successMessage", "Pizza '" + pizzaSalva.getNome() + "' salva com sucesso! (ID: " + pizzaSalva.getId() + ")");
             return "redirect:/admin/pizzas";
         } catch (Exception e) {
             System.err.println("Erro ao salvar pizza: " + e.getMessage());
             e.printStackTrace();
-            // Adiciona o erro ao model para ser exibido no formulário
-            model.addAttribute("errorMessage", "Erro ao salvar pizza. Verifique os dados ou tente novamente.");
+            model.addAttribute("errorMessage", "Erro ao salvar pizza: " + e.getMessage() + ". Verifique os dados ou tente novamente.");
             model.addAttribute("tituloForm", pizza.getId() == null ? "Adicionar Nova Pizza" : "Editar Pizza: " + pizza.getNome());
             model.addAttribute("acaoForm", "/admin/pizzas/salvar");
             model.addAttribute("ingredientesStr", ingredientesStr);
-            model.addAttribute("pizza", pizza); // Devolve o objeto pizza com os dados preenchidos
+            model.addAttribute("pizza", pizza); 
             return "admin/admin-form-pizza";
         }
     }
@@ -162,7 +174,119 @@ public class AdminController {
         return "redirect:/admin/pizzas";
     }
 
-    // --- MÉTODOS DE GERENCIAMENTO DE PEDIDOS (EXISTENTES, SEM ALTERAÇÃO NESTA ETAPA) ---
+    // --- MÉTODOS PARA GERENCIAMENTO DE ACOMPANHAMENTOS ---
+    @GetMapping("/acompanhamentos")
+    public String listarAcompanhamentos(Model model) {
+        // Busca todos e ordena por tipo, depois por nome
+        List<Acompanhamento> todosOsAcompanhamentos = acompanhamentoRepository.findAll(Sort.by(Sort.Direction.ASC, "tipo").and(Sort.by(Sort.Direction.ASC, "nome")));
+        
+        System.out.println("--- AdminController: listarAcompanhamentos ---");
+        if (todosOsAcompanhamentos == null || todosOsAcompanhamentos.isEmpty()) {
+            System.out.println("Nenhum acompanhamento/bebida encontrado no repositório.");
+        } else {
+            System.out.println("Total de acompanhamentos/bebidas encontrados: " + todosOsAcompanhamentos.size());
+            todosOsAcompanhamentos.forEach(acomp -> 
+                System.out.println("ID: " + acomp.getId() + ", Nome: " + acomp.getNome() + ", Tipo: " + acomp.getTipo() + 
+                                   ", Preço: " + acomp.getPreco() + ", Disponível: " + acomp.isDisponivel() +
+                                   ", ImagemURL: " + acomp.getImagemUrl())
+            );
+        }
+        
+        model.addAttribute("listaAcompanhamentos", todosOsAcompanhamentos);
+        return "admin/admin-acompanhamentos";
+    }
+
+    @GetMapping("/acompanhamentos/novo")
+    public String mostrarFormNovoAcompanhamento(Model model) {
+        Acompanhamento novoAcompanhamento = new Acompanhamento();
+        novoAcompanhamento.setDisponivel(true);
+        model.addAttribute("acompanhamento", novoAcompanhamento);
+        model.addAttribute("todosTiposAcompanhamento", TIPOS_ACOMPANHAMENTO);
+        model.addAttribute("tituloForm", "Adicionar Novo Acompanhamento/Bebida");
+        model.addAttribute("acaoForm", "/admin/acompanhamentos/salvar");
+        return "admin/admin-form-acompanhamento";
+    }
+
+    @GetMapping("/acompanhamentos/editar/{id}")
+    public String mostrarFormEditarAcompanhamento(@PathVariable("id") String id, Model model, RedirectAttributes redirectAttributes) {
+        Optional<Acompanhamento> acompanhamentoOpt = acompanhamentoRepository.findById(id);
+        if (acompanhamentoOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Acompanhamento não encontrado com ID: " + id);
+            return "redirect:/admin/acompanhamentos";
+        }
+        model.addAttribute("acompanhamento", acompanhamentoOpt.get());
+        model.addAttribute("todosTiposAcompanhamento", TIPOS_ACOMPANHAMENTO);
+        model.addAttribute("tituloForm", "Editar Acompanhamento/Bebida: " + acompanhamentoOpt.get().getNome());
+        model.addAttribute("acaoForm", "/admin/acompanhamentos/salvar");
+        return "admin/admin-form-acompanhamento";
+    }
+
+    @PostMapping("/acompanhamentos/salvar")
+    public String salvarAcompanhamento(@Valid @ModelAttribute("acompanhamento") Acompanhamento acompanhamento,
+                                       BindingResult bindingResult,
+                                       Model model,
+                                       RedirectAttributes redirectAttributes) {
+        System.out.println("--- INICIO SALVAR ACOMPANHAMENTO ---");
+        System.out.println("ID do Acompanhamento recebido: [" + acompanhamento.getId() + "]");
+        System.out.println("Nome: " + acompanhamento.getNome());
+        System.out.println("Tipo: " + acompanhamento.getTipo());
+
+        if (acompanhamento.getId() != null && acompanhamento.getId().trim().isEmpty()) {
+            System.out.println("ID do Acompanhamento era uma string vazia, setando para null.");
+            acompanhamento.setId(null);
+        }
+        if (!StringUtils.hasText(acompanhamento.getTipo())) {
+            bindingResult.rejectValue("tipo", "NotBlank.acompanhamento.tipo", "O tipo do acompanhamento é obrigatório.");
+            System.out.println("VALIDAÇÃO MANUAL FALHOU: Tipo do Acompanhamento está vazio.");
+        }
+
+        if (bindingResult.hasErrors()) {
+            System.out.println("Erro de binding Acompanhamento: " + bindingResult.getAllErrors());
+            model.addAttribute("todosTiposAcompanhamento", TIPOS_ACOMPANHAMENTO);
+            model.addAttribute("tituloForm", acompanhamento.getId() == null ? "Adicionar Novo Acompanhamento/Bebida" : "Editar Acompanhamento/Bebida: " + acompanhamento.getNome());
+            model.addAttribute("acaoForm", "/admin/acompanhamentos/salvar");
+            return "admin/admin-form-acompanhamento";
+        }
+        System.out.println("Acompanhamento antes de salvar: ID=[" + acompanhamento.getId() + "]");
+        try {
+            Acompanhamento acompanhamentoSalvo = acompanhamentoRepository.save(acompanhamento);
+            System.out.println("Acompanhamento salvo! ID: [" + acompanhamentoSalvo.getId() + "]");
+            redirectAttributes.addFlashAttribute("successMessage", "Acompanhamento/Bebida '" + acompanhamentoSalvo.getNome() + "' salvo com sucesso!");
+            return "redirect:/admin/acompanhamentos";
+        } catch (Exception e) {
+            System.err.println("Erro ao salvar acompanhamento: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("errorMessage", "Erro ao salvar acompanhamento: " + e.getMessage());
+            model.addAttribute("todosTiposAcompanhamento", TIPOS_ACOMPANHAMENTO);
+            model.addAttribute("tituloForm", acompanhamento.getId() == null ? "Adicionar Novo Acompanhamento/Bebida" : "Editar Acompanhamento/Bebida: " + acompanhamento.getNome());
+            model.addAttribute("acaoForm", "/admin/acompanhamentos/salvar");
+            model.addAttribute("acompanhamento", acompanhamento);
+            return "admin/admin-form-acompanhamento";
+        }
+    }
+
+    @PostMapping("/acompanhamentos/deletar/{id}")
+    public String deletarAcompanhamento(@PathVariable("id") String id, RedirectAttributes redirectAttributes) {
+        Optional<Acompanhamento> acompanhamentoOpt = acompanhamentoRepository.findById(id);
+        if (acompanhamentoOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Acompanhamento não encontrado com ID: " + id);
+            return "redirect:/admin/acompanhamentos";
+        }
+        try {
+            acompanhamentoRepository.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Acompanhamento/Bebida '" + acompanhamentoOpt.get().getNome() + "' deletado com sucesso!");
+        } catch (Exception e) {
+            System.err.println("Erro ao deletar acompanhamento: " + e.getMessage());
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("errorMessage", "Erro ao deletar acompanhamento.");
+        }
+        return "redirect:/admin/acompanhamentos";
+    }
+    
+    // --- MÉTODOS DE GERENCIAMENTO DE PEDIDOS (EXISTENTES) ---
+    // Mantenha os métodos de gerenciamento de pedidos como estavam na última versão completa.
+    // (listarPedidos, painelCozinha, detalhesPedido, atualizarStatusPedido, registrarPagamentoLocal)
+    // Por brevidade, não vou repetir todos eles aqui.
     @GetMapping("/pedidos")
     public String listarPedidos(
             @RequestParam(name = "dataSelecionada", required = false) 
@@ -340,4 +464,5 @@ public class AdminController {
         
         return "redirect:/admin/pedidos/detalhes/" + pedidoId;
     }
+
 }
